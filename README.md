@@ -1,2 +1,2 @@
 # eps_loucos
-Exercicios de programa COO e OAC 
+Exercicios de programa COO e OAC, de Java e Assembly (arquitetura MIPS), respectivamente.
