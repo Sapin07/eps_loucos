@@ -60,7 +60,7 @@ mmc:
 
 tentaDividir:
     	la $a0, m          # $a0 = &m
-    	la $a1, n          # $a1 = &n
+    	la $a1, n          # $a1 = &n 
     	move $a2, $s1        # $a2 = d
 
     	jal divide

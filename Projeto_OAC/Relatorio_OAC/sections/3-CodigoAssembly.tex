@@ -1,3 +1,66 @@
 \section{Código em Assembly desenvolvido}
 
-Muito texto.
+O programa foi implementado em MIPS Assembly e é organizado em três
+sessões principais: a rotina principal (\texttt{main}), responsável 
+pela leitura dos dados e impressão do resultado; a sub-rotina \texttt{mmc}, que 
+implementa o laço de cálculo do Mínimo Múltiplo Comum por divisões sucessivas; e a sub-rotina 
+\texttt{divide}, chamada repetidamente por \texttt{mmc}, que tenta 
+dividir \texttt{m} e/ou \texttt{n} por um divisor candidato \texttt{d}.
+
+A Tabela \ref{tab:registradores} resume o papel de cada registrador 
+utilizado, seguindo a convenção de uso da arquitetura 
+MIPS (registradores \texttt{\$t} como temporários não preservados entre 
+chamadas, \texttt{\$s} como registradores salvos/persistentes, \texttt{\$a} para 
+argumentos e \texttt{\$v} para valores de retorno).
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|l|}
+\hline
+\textbf{Registrador} & \textbf{Papel no programa} \\
+\hline
+\texttt{\$s0} & Acumulador do MMC (persiste durante todo o laço) \\
+\texttt{\$s1} & Divisor candidato \texttt{d} (persiste durante todo o laço) \\
+\texttt{\$a0, \$a1} & Endereços (\&m, \&n) passados para \texttt{divide} \\
+\texttt{\$a2} & Valor do divisor \texttt{d} passado para \texttt{divide} \\
+\texttt{\$v0} & Código de \textit{syscall} / valor de retorno de \texttt{divide} (0 ou 1) \\
+\texttt{\$t0, \$t1, \$t2} & Temporários intermediários (dividendo, resto, quociente) \\
+\texttt{\$ra} & Endereço de retorno da sub-rotina \texttt{divide} \\
+\hline
+\end{tabular}
+\caption{Registradores utilizados e seus papéis}
+\label{tab:registradores}
+\end{table}
+
+\subsection{Bloco principal (\texttt{main})}
+
+O bloco \texttt{main} é responsável apenas pela inicialização da execução do programa. Ele realiza a leitura dos dois 
+inteiros \texttt{m} e \texttt{n} por meio de chamadas de sistema, inicializa o acumulador do MMC em \texttt{\$s0 = 1} e o 
+divisor candidato inicial em \texttt{\$s1 = 2}. Após essas inicializações, prepara os registradores necessários e transfere 
+o controle para a sub-rotina \texttt{mmc}, que passa a executar o algoritmo principal.
+
+\lstinputlisting[firstline=13, lastline=38, caption={Bloco \texttt{main}}, label={lst:main}]{../src/EP.asm}
+
+\subsection{Sub-rotina \texttt{mmc}}
+
+A sub-rotina \texttt{mmc} implementa o laço principal responsável pelo cálculo do MMC. Em cada iteração, verifica se os 
+valores de \texttt{m} e \texttt{n} já foram reduzidos a \texttt{1}; caso isso ocorra, todos os fatores necessários já foram 
+extraídos e o programa desvia para o rótulo \texttt{imprime}, onde o resultado armazenado em \texttt{\$s0} é exibido. Caso 
+contrário, a sub-rotina chama \texttt{divide} utilizando o divisor candidato atual. Se a divisão de pelo menos um dos dois 
+valores ocorrer (\texttt{\$v0} diferente de zero), o divisor é incorporado ao acumulador por meio de uma multiplicação e a 
+próxima iteração reutiliza o mesmo valor de \texttt{d}. Se nenhuma divisão for realizada, o fluxo segue para o rótulo 
+\texttt{nao\_dividiu}, onde o divisor candidato é incrementado antes do início da próxima iteração.
+
+\lstinputlisting[firstline=42, lastline=90, caption={Sub-rotina \texttt{mmc}}, label={lst:mmc}]{../src/EP.asm}
+
+\subsection{Sub-rotina \texttt{divide}}
+
+A sub-rotina \texttt{divide} recebe os endereços das variáveis \texttt{m} e \texttt{n} nos registradores \texttt{\$a0} e 
+\texttt{\$a1}, respectivamente, e o divisor candidato \texttt{d} em \texttt{\$a2}. Inicialmente, verifica se \texttt{m} é 
+divisível por \texttt{d}; quando o resto da divisão é zero, substitui o valor de \texttt{m} pelo quociente obtido e registra 
+que uma divisão ocorreu por meio de \texttt{\$v0 = 1}. Em seguida, o mesmo procedimento é realizado para \texttt{n}, de forma 
+independente do resultado da primeira verificação. Ao término da execução, o valor retornado em \texttt{\$v0} indica se pelo 
+menos uma das duas divisões foi efetuada, informação utilizada pela sub-rotina \texttt{mmc} para decidir se o divisor atual 
+deve ser reutilizado ou incrementado.
+
+\lstinputlisting[firstline=95, lastline=121, caption={Sub-rotina \texttt{divide}}, label={lst:divide}]{../src/EP.asm}

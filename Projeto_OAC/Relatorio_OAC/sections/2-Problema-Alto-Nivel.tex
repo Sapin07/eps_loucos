@@ -1,3 +1,77 @@
 \section{Descrição do problema e código alto nível da solução}
 
-Muito texto.
+\subsection{Descrição do problema}
+
+O problema resolvido corresponde à Questão 8 da "Lista de Problemas" do EP. 
+
+O item (a) pede a implementação de uma função com assinatura \texttt{int divide (int *m, int *n, int d)}, que 
+recebe três inteiros positivos e deve devolver 1 caso o divisor \texttt{d} divida pelo menos um dos valores 
+apontados por \texttt{m} ou \texttt{n}, e 0 caso contrário. Além de retornar esses valores, sempre que \texttt{d} divide \texttt{*m}, o valor apontado é atualizado para o quociente da 
+divisão, e o mesmo vale para \texttt{*n}.
+
+O item (b) pede um programa que leia dois 
+inteiros positivos \texttt{m} e \texttt{n} e, utilizando obrigatoriamente a função do item (a), calcule o 
+mínimo múltiplo comum (MMC) entre eles.
+
+\subsection{Algoritmo de solução}
+
+A estratégia adotada para resolução do problema foi a de fatoração por tentativa. Testa-se sequencialmente cada divisor
+candidato \texttt{d}, começando em 2. Para cada \texttt{d}, chama-se \texttt{divide(\&m, \&n, d)}. 
+Se a chamada indicar que pelo menos um dos dois valores foi dividido, o divisor \texttt{d} é incorporado ao acumulador 
+do MMC (multiplicando-o) e o mesmo \texttt{d} é testado novamente, pois ele pode dividir novamente algum dos dois valores 
+restantes. Caso \texttt{d} não divida nem \texttt{*m} nem \texttt{*n}, incrementa-se \texttt{d} e repete-se o processo. 
+O algoritmo termina quando \texttt{m} e \texttt{n} foram reduzidos a 1, momento em que todos os seus fatores primos 
+(com multiplicidade) já foram extraídos e incorporados ao acumulador, que corresponde, portanto, ao MMC entre os 
+valores originais.
+
+A seguir, o Código \ref{lst:pseudocodigo} apresenta uma versão em linguagem C do algoritmo, servindo de 
+ponte entre a descrição acima e a implementação em Assembly apresentada na Seção \ref{sec:assembly}.
+
+\begin{lstlisting}[language=C, caption={Pseudocódigo em C do algoritmo}, label={lst:pseudocodigo}]
+int divide(int *m, int *n, int d) {
+    int dividiu = 0;
+
+    if (*m % d == 0) {
+        *m /= d;
+        dividiu = 1;
+    }
+    if (*n % d == 0) {
+        *n /= d;
+        dividiu = 1;
+    }
+
+    return dividiu;
+}
+
+int MMC(int m, int n) {
+    int result = 1;
+    int d = 2;
+
+    while (m != 1 || n != 1) {
+        if (divide(&m, &n, d)) {
+            result *= d;
+        } else {
+            d++;
+        }
+    }
+
+    return result;
+}
+
+int main() {
+    int m, n;
+    scanf("%i", &m);
+    scanf("%i", &n);
+
+    int mmc = MMC(m, n);
+
+    printf("O MMC e: %i\n", mmc);
+    return 0;
+}
+\end{lstlisting}
+
+Vale comentar que uma possível otimização para a estratégia adotada seria testar apenas divisores primos, em vez de verificar todos os inteiros 
+sequencialmente. Isso porque não faz sentido, testar divisores compostos, como por exemplo 6, já que seus fatores primos 
+(2 e 3) necessariamente teriam sido testados anteriormente. Dessa forma, poderia ser mantido um vetor 
+contendo números primos, e a variável \texttt{d} passaria a assumir apenas esses valores, reduzindo a quantidade de testes 
+desnecessários e tornando o processo de fatoração mais eficiente, principalmente para entradas de maior magnitude.
