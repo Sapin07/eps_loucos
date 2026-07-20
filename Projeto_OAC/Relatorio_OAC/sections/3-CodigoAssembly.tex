@@ -52,7 +52,7 @@ A sub-rotina \texttt{mmc} inicia salvando na pilha o endereço de retorno (\text
 Em seguida executa o laço principal do
 algoritmo. A cada iteração é verificado se \texttt{m} e \texttt{n} já foram reduzidos a 1 (rótulo \texttt{fim\_mmc}),
 caso contrário, empilha os três parâmetros de \texttt{divide} (\&m, \&n e o divisor candidato \texttt{d}, nessa ordem) e
-realiza a chamada com \texttt{jal}. 
+realiza a chamada com \texttt{jal}.
 Se pelo menos um dos dois valores foi dividido, o acumulador \texttt{\$s0} é multiplicado por \texttt{d} e o laço reinicia com o mesmo \texttt{d}, caso contrário, \texttt{d} é incrementado (rótulo \texttt{nao\_dividiu}).
 Ao final, o resultado é movido para \texttt{\$v0}, o contexto salvo é restaurado e a sub-rotina retorna com \texttt{jr \$ra}.
 
