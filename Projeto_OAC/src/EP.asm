@@ -83,14 +83,14 @@ mmc_loop:
     	j fim_mmc
 
 tentaDividir:
-    	# ------------------------------------------------------------------
+    	# ---------------------------------------------------
     	# Params
     	#   offset 8($sp) -> &m   (endereço de m)
     	#   offset 4($sp) -> &n   (endereço de n)
     	#   offset 0($sp) -> d    (valor do divisor testado)
     	# Quem chama abre espaço na pilha, empilha os 3 parâmetros, faz o
     	# "jal" e, ao retornar, desempilha o espaço que abriu.
-    	# ------------------------------------------------------------------
+    	# ----------------------------------------------------
     	addi $sp, $sp, -12   # abre espaço para 3 palavras na pilha
     	la   $t3, m
     	sw   $t3, 8($sp)      # empilha &m

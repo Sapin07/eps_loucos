@@ -15,52 +15,53 @@ argumentos e \texttt{\$v} para valores de retorno).
 
 \begin{table}[h]
 \centering
-\begin{tabular}{|c|l|}
+\begin{tabularx}{\textwidth}{|c|X|}
 \hline
 \textbf{Registrador} & \textbf{Papel no programa} \\
 \hline
-\texttt{\$s0} & Acumulador do MMC (persiste durante todo o laço) \\
-\texttt{\$s1} & Divisor candidato \texttt{d} (persiste durante todo o laço) \\
-\texttt{\$a0, \$a1} & Endereços (\&m, \&n) passados para \texttt{divide} \\
-\texttt{\$a2} & Valor do divisor \texttt{d} passado para \texttt{divide} \\
-\texttt{\$v0} & Código de \textit{syscall} / valor de retorno de \texttt{divide} (0 ou 1) \\
-\texttt{\$t0, \$t1, \$t2} & Temporários intermediários (dividendo, resto, quociente) \\
-\texttt{\$ra} & Endereço de retorno da sub-rotina \texttt{divide} \\
+\texttt{\$sp} & Ponteiro de pilha, usado para empilhar parâmetros e contexto salvo \\
 \hline
-\end{tabular}
+\texttt{\$ra} & Endereço de retorno, salvo/restaurado na pilha em \texttt{mmc} e \texttt{divide} \\
+\hline
+\texttt{\$s0} & Acumulador do MMC (salvo na pilha durante as chamadas a \texttt{divide}) \\
+\hline
+\texttt{\$s1} & Divisor candidato \texttt{d} (salvo na pilha durante as chamadas a \texttt{divide}) \\
+\hline
+\texttt{\$a0, \$a1, \$a2} & Parâmetros de \texttt{divide} (\&m, \&n, d) após serem lidos na pilha \\
+\hline
+\texttt{\$v0} & Código de \textit{syscall} / valor de retorno de \texttt{divide} (0 ou 1) \\
+\hline
+\texttt{\$t0, \$t1, \$t2} & Temporários intermediários (dividendo, resto, quociente) \\
+\hline
+\end{tabularx}
 \caption{Registradores utilizados e seus papéis}
 \label{tab:registradores}
 \end{table}
 
 \subsection{Bloco principal (\texttt{main})}
 
-O bloco \texttt{main} é responsável apenas pela inicialização da execução do programa. Ele realiza a leitura dos dois 
-inteiros \texttt{m} e \texttt{n} por meio de chamadas de sistema, inicializa o acumulador do MMC em \texttt{\$s0 = 1} e o 
-divisor candidato inicial em \texttt{\$s1 = 2}. Após essas inicializações, prepara os registradores necessários e transfere 
-o controle para a sub-rotina \texttt{mmc}, que passa a executar o algoritmo principal.
+O bloco \texttt{main} realiza a leitura dos dois inteiros \texttt{m} e \texttt{n} via chamadas de sistema, chama a sub-rotina
+\texttt{mmc} e imprime o valor retornado em \texttt{\$v0}.
 
-\lstinputlisting[firstline=13, lastline=38, caption={Bloco \texttt{main}}, label={lst:main}]{../src/EP.asm}
+\lstinputlisting[firstline=12, lastline=51, caption={Bloco \texttt{main}}, label={lst:main}]{../src/EP.asm}
 
 \subsection{Sub-rotina \texttt{mmc}}
 
-A sub-rotina \texttt{mmc} implementa o laço principal responsável pelo cálculo do MMC. Em cada iteração, verifica se os 
-valores de \texttt{m} e \texttt{n} já foram reduzidos a \texttt{1}; caso isso ocorra, todos os fatores necessários já foram 
-extraídos e o programa desvia para o rótulo \texttt{imprime}, onde o resultado armazenado em \texttt{\$s0} é exibido. Caso 
-contrário, a sub-rotina chama \texttt{divide} utilizando o divisor candidato atual. Se a divisão de pelo menos um dos dois 
-valores ocorrer (\texttt{\$v0} diferente de zero), o divisor é incorporado ao acumulador por meio de uma multiplicação e a 
-próxima iteração reutiliza o mesmo valor de \texttt{d}. Se nenhuma divisão for realizada, o fluxo segue para o rótulo 
-\texttt{nao\_dividiu}, onde o divisor candidato é incrementado antes do início da próxima iteração.
+A sub-rotina \texttt{mmc} inicia salvando na pilha o endereço de retorno (\texttt{\$ra}) e os registradores \texttt{\$s0} e
+\texttt{\$s1}, que precisam sobreviver às chamadas a \texttt{divide}. 
+Em seguida executa o laço principal do
+algoritmo. A cada iteração é verificado se \texttt{m} e \texttt{n} já foram reduzidos a 1 (rótulo \texttt{fim\_mmc}),
+caso contrário, empilha os três parâmetros de \texttt{divide} (\&m, \&n e o divisor candidato \texttt{d}, nessa ordem) e
+realiza a chamada com \texttt{jal}. 
+Se pelo menos um dos dois valores foi dividido, o acumulador \texttt{\$s0} é multiplicado por \texttt{d} e o laço reinicia com o mesmo \texttt{d}, caso contrário, \texttt{d} é incrementado (rótulo \texttt{nao\_dividiu}).
+Ao final, o resultado é movido para \texttt{\$v0}, o contexto salvo é restaurado e a sub-rotina retorna com \texttt{jr \$ra}.
 
-\lstinputlisting[firstline=42, lastline=90, caption={Sub-rotina \texttt{mmc}}, label={lst:mmc}]{../src/EP.asm}
+\lstinputlisting[firstline=56, lastline=122, caption={Sub-rotina \texttt{mmc}}, label={lst:mmc}]{../src/EP.asm}
 
 \subsection{Sub-rotina \texttt{divide}}
 
-A sub-rotina \texttt{divide} recebe os endereços das variáveis \texttt{m} e \texttt{n} nos registradores \texttt{\$a0} e 
-\texttt{\$a1}, respectivamente, e o divisor candidato \texttt{d} em \texttt{\$a2}. Inicialmente, verifica se \texttt{m} é 
-divisível por \texttt{d}; quando o resto da divisão é zero, substitui o valor de \texttt{m} pelo quociente obtido e registra 
-que uma divisão ocorreu por meio de \texttt{\$v0 = 1}. Em seguida, o mesmo procedimento é realizado para \texttt{n}, de forma 
-independente do resultado da primeira verificação. Ao término da execução, o valor retornado em \texttt{\$v0} indica se pelo 
-menos uma das duas divisões foi efetuada, informação utilizada pela sub-rotina \texttt{mmc} para decidir se o divisor atual 
-deve ser reutilizado ou incrementado.
+A sub-rotina \texttt{divide} recebe seus três parâmetros pela pilha, em vez de registradores de argumento.
+Como a própria sub-rotina abre seu próprio espaço de pilha (16 bytes, para salvar \texttt{\$ra}, \texttt{\$t0}, \texttt{\$t1} e \texttt{\$t2}) antes de acessar os parâmetros empilhados pelo chamador, os deslocamentos usados para lê-los (\texttt{24(\$sp)}, \texttt{20(\$sp)} e \texttt{16(\$sp)}) já contabilizam esse deslocamento adicional.
+Após copiar os parâmetros para \texttt{\$a0}, \texttt{\$a1} e \texttt{\$a2}, a lógica de divisão é a mesma de antes: testa \texttt{*m} e, independentemente do resultado, testa \texttt{*n}, retornando em \texttt{\$v0} se pelo menos uma das duas divisões ocorreu.
 
-\lstinputlisting[firstline=95, lastline=121, caption={Sub-rotina \texttt{divide}}, label={lst:divide}]{../src/EP.asm}
+\lstinputlisting[firstline=138, lastline=179, caption={Sub-rotina \texttt{divide}}, label={lst:divide}]{../src/EP.asm}
