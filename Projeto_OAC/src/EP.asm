@@ -41,7 +41,7 @@ main:
     	la $a0, msg_mmc
     	syscall
 	
-    	# imprime string do MMC
+    	# imprime inteiro do MMC
     	li $v0, 1
     	move $a0, $t0
     	syscall

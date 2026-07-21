@@ -2,16 +2,17 @@
 
 \subsection{Descrição do problema}
 
-O problema resolvido corresponde à Questão 8 da "Lista de Problemas" do EP. 
+O problema resolvido neste relatório corresponde à Questão 8 da lista de problemas propostos para o EP.
 
 O item (a) pede a implementação de uma função com assinatura \texttt{int divide (int *m, int *n, int d)}, que 
 recebe três inteiros positivos e deve devolver 1 caso o divisor \texttt{d} divida pelo menos um dos valores 
-apontados por \texttt{m} ou \texttt{n}, e 0 caso contrário. Além de retornar esses valores, sempre que \texttt{d} divide \texttt{*m}, o valor apontado é atualizado para o quociente da 
-divisão, e o mesmo vale para \texttt{*n}.
+apontados por \texttt{m} ou \texttt{n}, e 0 caso contrário. Além de retornar esses valores, sempre que \texttt{d} divide \texttt{*m}, 
+o valor apontado é atualizado para o quociente da divisão, e o mesmo vale para \texttt{*n}. Ou seja, se \texttt{d} 
+divide \texttt{*m}, o valor apontado por \texttt{m} passa a ser \texttt{*m/d} (além da função retornar 1).
 
-O item (b) pede um programa que leia dois 
-inteiros positivos \texttt{m} e \texttt{n} e, utilizando obrigatoriamente a função do item (a), calcule o 
-mínimo múltiplo comum (MMC) entre eles.
+Por sua vez, o item (b) pede um programa que leia dois 
+inteiros positivos \texttt{m} e \texttt{n} e, utilizando obrigatoriamente a função do item anterior, calcule o 
+Mínimo Múltiplo Comum (MMC) entre eles.
 
 \subsection{Algoritmo de solução}
 
@@ -19,13 +20,14 @@ A estratégia adotada para resolução do problema foi a de fatoração por tent
 candidato \texttt{d}, começando em 2. Para cada \texttt{d}, chama-se \texttt{divide(\&m, \&n, d)}. 
 Se a chamada indicar que pelo menos um dos dois valores foi dividido, o divisor \texttt{d} é incorporado ao acumulador 
 do MMC (multiplicando-o) e o mesmo \texttt{d} é testado novamente, pois ele pode dividir novamente algum dos dois valores 
-restantes. Caso \texttt{d} não divida nem \texttt{*m} nem \texttt{*n}, incrementa-se \texttt{d} e repete-se o processo. 
-O algoritmo termina quando \texttt{m} e \texttt{n} foram reduzidos a 1, momento em que todos os seus fatores primos 
-(com multiplicidade) já foram extraídos e incorporados ao acumulador, que corresponde, portanto, ao MMC entre os 
+restantes.
+Caso \texttt{d} não divida nem \texttt{*m} nem \texttt{*n}, incrementa-se \texttt{d} e repete-se o processo.
+O algoritmo termina quando \texttt{m} e \texttt{n} foram reduzidos a 1, momento em que todos os seus fatores primos
+já foram extraídos e incorporados ao acumulador, que corresponde, portanto, ao MMC entre os
 valores originais.
 
-A seguir, o Código \ref{lst:pseudocodigo} apresenta uma versão em linguagem C do algoritmo, servindo de 
-ponte entre a descrição acima e a implementação em Assembly apresentada na Seção \ref{sec:assembly}.
+A seguir, o Código \ref{lst:pseudocodigo} apresenta uma versão em linguagem C do algoritmo, servindo de
+base para fazer a conexão entre a descrição da resolução acima e a implementação em Assembly apresentada na Seção \ref{sec:assembly}.
 
 \begin{lstlisting}[language=C, caption={Pseudocódigo em C do algoritmo}, label={lst:pseudocodigo}]
 int divide(int *m, int *n, int d) {
@@ -70,8 +72,10 @@ int main() {
 }
 \end{lstlisting}
 
-Vale comentar que uma possível otimização para a estratégia adotada seria testar apenas divisores primos, em vez de verificar todos os inteiros 
-sequencialmente. Isso porque não faz sentido, testar divisores compostos, como por exemplo 6, já que seus fatores primos 
-(2 e 3) necessariamente teriam sido testados anteriormente. Dessa forma, poderia ser mantido um vetor 
-contendo números primos, e a variável \texttt{d} passaria a assumir apenas esses valores, reduzindo a quantidade de testes 
+Vale comentar que uma possível otimização para a estratégia adotada (fatoração por tentativa) seria testar apenas divisores primos, em vez de verificar todos os inteiros 
+sequencialmente.
+Isso porque não faz sentido, testar divisores compostos, como por exemplo 6, já que seus fatores primos
+(2 e 3) necessariamente teriam sido testados anteriormente.
+Dessa forma, poderia ser mantido um vetor
+contendo alguns números primos, e a variável \texttt{d} passaria a assumir apenas esses valores, reduzindo a quantidade de testes 
 desnecessários e tornando o processo de fatoração mais eficiente, principalmente para entradas de maior magnitude.
