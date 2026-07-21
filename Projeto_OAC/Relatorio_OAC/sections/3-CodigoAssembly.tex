@@ -1,4 +1,5 @@
 \section{Implementação em Assembly}
+\label{sec:assembly}
 
 O programa foi implementado em MIPS Assembly e é organizado em três
 sessões principais: a rotina principal (\texttt{main}), responsável 
@@ -43,7 +44,7 @@ argumentos e \texttt{\$v} para valores de retorno).
 O bloco \texttt{main} realiza a leitura dos dois inteiros \texttt{m} e \texttt{n} via chamadas de sistema, chama a sub-rotina
 \texttt{mmc} e imprime o valor retornado em \texttt{\$v0}.
 
-\lstinputlisting[firstline=12, lastline=51, caption={Bloco \texttt{main}}, label={lst:main}]{../src/EP.asm}
+\lstinputlisting[firstline=12, lastline=51, firstnumber=12, caption={Bloco \texttt{main}}, label={lst:main}]{../src/EP.asm}
 
 \subsection{Sub-rotina \texttt{mmc}}
 
@@ -56,7 +57,7 @@ realiza a chamada com \texttt{jal}.
 Se pelo menos um dos dois valores foi dividido, o acumulador \texttt{\$s0} é multiplicado por \texttt{d} e o laço reinicia com o mesmo \texttt{d}, caso contrário, \texttt{d} é incrementado (rótulo \texttt{nao\_dividiu}).
 Ao final, o resultado é movido para \texttt{\$v0}, o contexto salvo é restaurado e a sub-rotina retorna com \texttt{jr \$ra}.
 
-\lstinputlisting[firstline=56, lastline=122, caption={Sub-rotina \texttt{mmc}}, label={lst:mmc}]{../src/EP.asm}
+\lstinputlisting[firstline=56, lastline=122, firstnumber=56, caption={Sub-rotina \texttt{mmc}}, label={lst:mmc}]{../src/EP.asm}
 
 \subsection{Sub-rotina \texttt{divide}}
 
@@ -64,4 +65,4 @@ A sub-rotina \texttt{divide} recebe seus três parâmetros pela pilha, em vez de
 Como a própria sub-rotina abre seu próprio espaço de pilha (16 bytes, para salvar \texttt{\$ra}, \texttt{\$t0}, \texttt{\$t1} e \texttt{\$t2}) antes de acessar os parâmetros empilhados pelo chamador, os deslocamentos usados para lê-los (\texttt{24(\$sp)}, \texttt{20(\$sp)} e \texttt{16(\$sp)}) já contabilizam esse deslocamento adicional.
 Após copiar os parâmetros para \texttt{\$a0}, \texttt{\$a1} e \texttt{\$a2}, a lógica de divisão é a mesma de antes: testa \texttt{*m} e, independentemente do resultado, testa \texttt{*n}, retornando em \texttt{\$v0} se pelo menos uma das duas divisões ocorreu.
 
-\lstinputlisting[firstline=138, lastline=179, caption={Sub-rotina \texttt{divide}}, label={lst:divide}]{../src/EP.asm}
+\lstinputlisting[firstline=138, lastline=179, firstnumber=138, caption={Sub-rotina \texttt{divide}}, label={lst:divide}]{../src/EP.asm}

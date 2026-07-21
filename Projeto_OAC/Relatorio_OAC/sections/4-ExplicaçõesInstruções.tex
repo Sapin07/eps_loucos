@@ -199,7 +199,7 @@ $MEM[EA] \leftarrow Reg[v0]$
 \textbf{Execução:}
 $Reg[ra] \leftarrow PC$
 (endereço já incrementado na busca, ou seja, o da instrução seguinte);
-\quad $PC \leftarrow PC[31{:}28] \,\|\, (endereço\text{-}alvo \ll 2)$
+\quad $PC \leftarrow PC[31{:}28] \,\|\, (\text{endereço-alvo} \ll 2)$
 
 \textbf{Primeira ocorrência} -- \texttt{jal mmc} (linha 34): salva em
 \texttt{\$ra} o endereço de retorno para \texttt{main} e desvia para o
@@ -285,7 +285,7 @@ for diferente de 1.
 \texttt{opcode(6) | endereço-alvo(26)}
 
 \textbf{Execução:}
-$PC \leftarrow PC[31{:}28] \,\|\, (endereço\text{-}alvo \ll 2)$
+$PC \leftarrow PC[31{:}28] \,\|\, (\text{endereço-alvo} \ll 2)$
 
 \textbf{Primeira ocorrência} -- \texttt{j fim\_mmc} (linha 83): desvia
 incondicionalmente para o epílogo de \texttt{mmc}.
