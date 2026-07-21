@@ -1,3 +1,23 @@
-\section{Organização e Arquitetura MIPS}
+\section{Introdução}
 
-Muito texto.
+O presente trabalho trata da resolução e análise de um problema prático desenvolvido no âmbito da disciplina de Organização e Arquitetura de Computadores. O objetivo do programa consiste no cálculo do Mínimo Múltiplo Comum (MMC) entre dois números inteiros positivos fornecidos pelo usuário, empregando o método de fatoração por tentativa. A solução é estruturada a partir de uma rotina principal (\texttt{main}) e das sub-rotinas \texttt{mmc} e \texttt{divide}, onde a verificação de divisibilidade e a atualização dos ponteiros das variáveis de entrada ocorrem de maneira modular.
+
+A transição de uma descrição em linguagem de alto nível (como o pseudocódigo em C) para a implementação em linguagem de montagem (\textit{Assembly}) MIPS evidencia os aspectos operacionais da arquitetura do computador que permanecem abstratos em linguagens de alto nível. Enquanto uma linguagem como C permite a manipulação direta de ponteiros de memória (\texttt{*m} e \texttt{*n}) e expressões aritméticas compostas em uma única linha, a arquitetura MIPS exige que cada acesso à memória seja traduzido em instruções explícitas de carga (\texttt{lw}) e escrita (\texttt{sw}). Além disso, a alocação de variáveis temporárias e o controle do fluxo de execução por meio da pilha de execução (\texttt{\$sp}) e registradores de retorno (\texttt{\$ra}) demandam um gerenciamento rigoroso dos recursos do processador.
+
+\subsection{A Arquitetura MIPS e seus Princípios de Projeto}
+
+Desenvolvida originalmente na Universidade de Stanford em 1981 por John Hennessy e comercializada posteriormente pela MIPS Computer Systems, a arquitetura MIPS (\textit{Microprocessor without Interlocked Pipeline Stages}) é um dos marcos fundamentais do paradigma RISC (\textit{Reduced Instruction Set Computer}). A filosofia central do projeto RISC baseia-se na simplificação do conjunto de instruções para permitir a implementação de \textit{hardware} mais simples, rápido e eficiente em termos de consumo de energia, transferindo a complexidade de otimização para o compilador.
+
+A arquitetura MIPS é orientada por quatro princípios basilares de projeto de \textit{hardware}:
+
+\begin{enumerate}
+    \item \textbf{Simplicidade favorece a regularidade:} Todas as instruções MIPS possuem extensão fixa de 32 bits (1 palavra) e formato altamente padronizado, onde instruções aritméticas operam estritamente sobre três operandos. Essa regularidade simplifica a lógica de busca (\textit{fetch}) e decodificação do processador.
+    
+    \item \textbf{Menor é mais rápido:} O MIPS dispõe de um banco de registradores reduzido, composto por 32 registradores de propósito geral de 32 bits. A limitação em 32 unidades reduz a distância física de propagação dos sinais elétricos no silício, garantindo tempos de ciclo de \textit{clock} menores. O uso desses registradores segue a convenção da ABI (\textit{Application Binary Interface}), reservando faixas específicas para argumentos (\texttt{\$a0}-\texttt{\$a3}), valores de retorno (\texttt{\$v0}-\texttt{\$v1}), temporários (\texttt{\$t0}-\texttt{\$t9}), salvos (\texttt{\$s0}-\texttt{\$s7}) e ponteiros de controle (\texttt{\$sp}, \texttt{\$ra}).
+    
+    \item \textbf{Otimização do caso comum:} A arquitetura codifica constantes diretamente em instruções imediatas (\texttt{addi}, \texttt{slti}) e disponibiliza o registrador \texttt{\$zero} (\texttt{\$0}) fixado em zero no \textit{hardware}. Isso acelera operações frequentes como inicialização, atribuição e cópia de valores entre registradores sem a necessidade de acessos custosos à memória.
+    
+    \item \textbf{Um bom projeto exige bons compromissos:} Para acomodar operandos imediatos de 16 bits ou endereços de desvio mantendo a extensão fixa de 32 bits para todas as instruções, o MIPS adota três formatos distintos de instrução: Tipo R (Registrador), Tipo I (Imediato) e Tipo J (\textit{Jump}).
+\end{enumerate}
+
+Uma característica marcante da arquitetura MIPS é a sua estrutura \textit{Load-Store}. Instruções aritméticas e lógicas operam exclusivamente sobre dados contidos nos registradores internos da CPU; nenhum operando de memória pode ser utilizado diretamente em uma operação de cálculo. Além disso, a memória principal é desempenhada por endereçamento por \textit{byte} com restrição de alinhamento, exigindo que palavras de 32 bits estejam alinhadas em endereços múltiplos de 4. A arquitetura não possui modo de endereçamento indireto por memória, de forma que os endereços efetivos de carga e escrita são sempre calculados no ciclo de execução somando-se um registrador base a um deslocamento imediato (\textit{offset}).
