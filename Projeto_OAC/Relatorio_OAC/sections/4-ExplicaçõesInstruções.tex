@@ -1,3 +1,381 @@
-\section{Explicação detalhada das instruções utilizadas no código feito pela equipe}
+\section{Micro-operações do Conjunto de Instruções Utilizado}
 
-Muito texto.
+\label{sec:instrucoes}
+
+\subsection{Convenções adotadas}
+
+Para cada instrução, apresentamos as micro-operações dos três ciclos
+pedidos: busca, indireto e execução, usando notação de transferência entre
+registradores (RTL). As seguintes convenções são usadas:
+
+\begin{description}
+\item[\texttt{PC}] Contador de programa.
+\item[\texttt{IR}] Registrador de instrução.
+\item[\texttt{Reg[x]}] Conteúdo do registrador \texttt{x}.
+\item[\texttt{MEM[end]}] Palavra de memória no endereço \texttt{end}.
+\item[\texttt{HI}, \texttt{LO}] Registradores especiais de 32 bits usados
+por multiplicação/divisão.
+\item[\textit{sign\_extend}] Função que estende o sinal de um campo
+imediato de 16 para 32 bits.
+\item[\textit{zero\_extend}] Função que completa com zeros à esquerda
+(usada nas instruções lógicas imediatas, como \texttt{ori}).
+\end{description}
+
+\textbf{Ciclo de busca.} É idêntico para todas as instruções e por isso
+não é repetido em cada subseção:
+\begin{align*}
+IR &\leftarrow MEM[PC] \\
+PC &\leftarrow PC + 4
+\end{align*}
+
+\textbf{Ciclo indireto.} A arquitetura MIPS não possui modo de
+endereçamento indireto: nenhuma instrução do conjunto usa um endereço
+armazenado em memória para localizar seu operando. Mesmo as instruções de
+acesso à memória (\texttt{lw}, \texttt{sw}) calculam o endereço efetivo
+diretamente durante a execução, somando um registrador base a um
+deslocamento imediato. Por esse motivo, o ciclo indireto \textbf{não se
+aplica a nenhuma instrução} usada neste programa, e essa observação não
+será repetida individualmente.
+
+\textbf{Ciclo de execução.} Por simplicidade, e por o enunciado
+especificar apenas três ciclos (busca, indireto, execução), a
+decodificação/leitura de operandos e a escrita do resultado
+(\textit{write-back}) são apresentadas como parte do ciclo de execução de
+cada instrução, em vez de fases isoladas.
+
+\textbf{Repetição de ocorrências.} Quando a mesma instrução real aparece
+mais de uma vez no código (inclusive quando gerada por diferentes
+pseudo-instruções), a primeira ocorrência é detalhada por completo; as
+demais, por executarem exatamente a mesma sequência de micro-operações,
+são apenas listadas por linha/rótulo.
+
+\subsection{Pseudo-instruções e suas expansões}
+
+A Tabela \ref{tab:pseudo} lista as pseudo-instruções empregadas pela
+equipe e as instruções reais que o montador (MARS/SPIM) gera a partir
+delas. O detalhamento de micro-operações de cada instrução real gerada
+está nas subseções correspondentes, adiante.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|l|l|X|}
+\hline
+\textbf{Pseudo-instrução} &
+\textbf{Exemplo no código} &
+\textbf{Instruções reais geradas} \\
+\hline
+
+\texttt{li \$reg, imed} &
+\texttt{li \$v0, 4} (l.\,14) &
+\texttt{ori \$reg, \$zero, imed}$^{*}$ \\
+\hline
+
+\texttt{la \$reg, rótulo} &
+\texttt{la \$a0, msg\_m} (l.\,15) &
+\texttt{lui \$reg, alta(rótulo)}; \texttt{ori \$reg, \$reg, baixa(rótulo)} \\
+\hline
+
+\texttt{lw \$reg, rótulo} &
+\texttt{lw \$t0, m} (l.\,68) &
+\texttt{lui \$at, alta(rótulo)}; \texttt{lw \$reg, baixa(rótulo)(\$at)} \\
+\hline
+
+\texttt{sw \$reg, rótulo} &
+\texttt{sw \$v0, m} (l.\,21) &
+\texttt{lui \$at, alta(rótulo)}; \texttt{sw \$reg, baixa(rótulo)(\$at)} \\
+\hline
+
+\texttt{move \$rd, \$rs} &
+\texttt{move \$t0, \$v0} (l.\,37) &
+\texttt{addu \$rd, \$rs, \$zero} \\
+\hline
+
+\texttt{beqz \$rs, rótulo} &
+\texttt{beqz \$v0, nao\_dividiu} (l.\,104) &
+\texttt{beq \$rs, \$zero, rótulo} \\
+\hline
+
+\texttt{bnez \$rs, rótulo} &
+\texttt{bnez \$t1, testa\_n} (l.\,156) &
+\texttt{bne \$rs, \$zero, rótulo} \\
+\hline
+
+\texttt{mul \$rd, \$rs, \$rt} &
+\texttt{mul \$s0, \$s0, \$s1} (l.\,106) &
+\texttt{mult \$rs, \$rt}; \texttt{mflo \$rd} \\
+\hline
+
+\end{tabularx}
+\caption{Pseudo-instruções utilizadas e suas expansões}
+\label{tab:pseudo}
+\end{table}
+
+\footnotesize{$^{*}$Todos os valores imediatos usados em \texttt{li} no
+programa (0, 1, 2, 4, 5, 10) cabem em 16 bits sem sinal; por isso o
+montador gera apenas um \texttt{ori}, sem necessidade de \texttt{lui}
+adicional.}
+\normalsize
+
+\subsection{Instrução \texttt{ori}}
+
+\textbf{Formato (I):}
+\texttt{opcode(6) | rs(5) | rt(5) | imediato(16)}
+
+\textbf{Execução:}
+$Reg[rt] \leftarrow Reg[rs] \lor zero\_extend(imediato)$
+
+Usada para implementar a carga de constantes de \texttt{li} (com
+$rs = \$zero$) e a metade menos significativa do endereço em \texttt{la}
+e nas formas de \texttt{lw}/\texttt{sw} com rótulo direto.
+
+\textbf{Primeira ocorrência} -- \texttt{li \$v0, 4} (linha 14)
+$\rightarrow$ \texttt{ori \$v0, \$zero, 4}:
+$Reg[v0] \leftarrow Reg[zero] \lor zero\_extend(4) = 4$.
+
+\textbf{Demais ocorrências:} linhas 15, 19, 24, 25, 29, 40, 41, 45, 50,
+63, 64, 68, 69, 72, 95, 97, 149, 160, 171.
+
+\subsection{Instrução \texttt{lui}}
+
+\textbf{Formato (I):}
+\texttt{opcode(6) | rs(5, não usado) | rt(5) | imediato(16)}
+
+\textbf{Execução:}
+$Reg[rt] \leftarrow imediato \ll 16$
+(bits menos significativos preenchidos com zero)
+
+Usada como primeira metade de \texttt{la} e das formas de
+\texttt{lw}/\texttt{sw} com rótulo direto, para carregar os 16 bits mais
+significativos do endereço do rótulo.
+
+\textbf{Primeira ocorrência} -- primeira metade de
+\texttt{la \$a0, msg\_m} (linha 15) $\rightarrow$
+\texttt{lui \$a0, alta(msg\_m)}:
+$Reg[a0] \leftarrow alta(msg\_m) \ll 16$.
+
+\textbf{Demais ocorrências:} linhas 21, 25, 31, 41, 68, 69, 95, 97.
+
+\subsection{Instrução \texttt{syscall}}
+
+\textbf{Formato (especial):} apenas \texttt{opcode} e \texttt{funct}; os
+demais campos não são usados.
+
+\textbf{Execução:} dispara uma exceção (\textit{trap}) que transfere o
+controle ao núcleo do simulador. O núcleo lê o código de serviço em
+\texttt{\$v0} e executa a rotina correspondente (imprimir string usando o
+endereço em \texttt{\$a0}, ler inteiro devolvendo-o em \texttt{\$v0},
+imprimir inteiro usando \texttt{\$a0}, ou encerrar o programa), retornando
+o controle à instrução seguinte.
+
+\textbf{Primeira ocorrência} -- linha 16, com $Reg[v0] = 4$: imprime a
+string apontada por \texttt{\$a0} (mensagem "Digite m: ").
+
+\textbf{Demais ocorrências:} linhas 20, 26, 30, 42, 47, 51.
+
+\subsection{Instrução \texttt{sw}}
+
+\textbf{Formato (I):}
+\texttt{opcode(6) | rs(5) | rt(5) | deslocamento(16)}
+
+\textbf{Execução:}
+$EA \leftarrow Reg[rs] + sign\_extend(deslocamento)$;
+\quad $MEM[EA] \leftarrow Reg[rt]$
+
+\textbf{Primeira ocorrência} -- \texttt{sw \$v0, m} (linha 21), expandida
+para \texttt{sw \$v0, baixa(m)(\$at)}:
+$EA \leftarrow Reg[at] + sign\_extend(baixa(m))$;
+$MEM[EA] \leftarrow Reg[v0]$
+(guarda o valor de \texttt{m} lido do teclado).
+
+\textbf{Demais ocorrências:} linhas 31, 59, 60, 61, 96, 98, 99, 140, 141,
+142, 143, 159, 170.
+
+\subsection{Instrução \texttt{jal}}
+
+\textbf{Formato (J):}
+\texttt{opcode(6) | endereço-alvo(26)}
+
+\textbf{Execução:}
+$Reg[ra] \leftarrow PC$
+(endereço já incrementado na busca, ou seja, o da instrução seguinte);
+\quad $PC \leftarrow PC[31{:}28] \,\|\, (endereço\text{-}alvo \ll 2)$
+
+\textbf{Primeira ocorrência} -- \texttt{jal mmc} (linha 34): salva em
+\texttt{\$ra} o endereço de retorno para \texttt{main} e desvia para o
+rótulo \texttt{mmc}.
+
+\textbf{Demais ocorrências:} linha 101 (\texttt{jal divide}).
+
+\subsection{Instrução \texttt{addu}}
+
+\textbf{Formato (R):}
+\texttt{opcode(6) | rs(5) | rt(5) | rd(5) | shamt(5) | funct(6)}
+
+\textbf{Execução:}
+$Reg[rd] \leftarrow Reg[rs] + Reg[rt]$
+(soma sem verificação de \textit{overflow})
+
+Usada para implementar \texttt{move}, sempre com $rt = \$zero$, de modo
+que $Reg[rd] \leftarrow Reg[rs]$.
+
+\textbf{Primeira ocorrência} -- \texttt{move \$t0, \$v0} (linha 37)
+$\rightarrow$ \texttt{addu \$t0, \$v0, \$zero}:
+$Reg[t0] \leftarrow Reg[v0] + 0$
+(copia o MMC retornado por \texttt{mmc} para um registrador temporário).
+
+\textbf{Demais ocorrências:} linhas 46, 115.
+
+\subsection{Instrução \texttt{addi}}
+
+\textbf{Formato (I):}
+\texttt{opcode(6) | rs(5) | rt(5) | imediato(16)}
+
+\textbf{Execução:}
+$Reg[rt] \leftarrow Reg[rs] + sign\_extend(imediato)$
+
+Diferente de \texttt{ori}, o imediato aqui é estendido com sinal, e (pela
+especificação do MIPS) a instrução pode gerar exceção de
+\textit{overflow} -- o que não ocorre neste programa, já que os valores
+manipulados são pequenos.
+
+\textbf{Primeira ocorrência} -- \texttt{addi \$sp, \$sp, -12}
+(linha 58): $Reg[sp] \leftarrow Reg[sp] + (-12)$,
+abrindo espaço na pilha para o prólogo de \texttt{mmc}.
+
+\textbf{Demais ocorrências:} linhas 94, 103, 110, 121, 139, 178.
+
+\subsection{Instrução \texttt{lw}}
+
+\textbf{Formato (I):} igual ao de \texttt{sw}.
+
+\textbf{Execução:}
+$EA \leftarrow Reg[rs] + sign\_extend(deslocamento)$;
+\quad $Reg[rt] \leftarrow MEM[EA]$
+
+\textbf{Primeira ocorrência} -- \texttt{lw \$t0, m} (linha 68), expandida
+para \texttt{lw \$t0, baixa(m)(\$at)}:
+$EA \leftarrow Reg[at] + sign\_extend(baixa(m))$;
+$Reg[t0] \leftarrow MEM[EA]$
+(carrega o valor atual de \texttt{m}).
+
+\textbf{Demais ocorrências:} linhas 69, 118, 119, 120, 145, 146, 147, 152,
+163, 174, 175, 176, 177.
+
+\subsection{Instrução \texttt{bne}}
+
+\textbf{Formato (I):}
+\texttt{opcode(6) | rs(5) | rt(5) | deslocamento(16)}
+
+\textbf{Execução:} se $Reg[rs] \neq Reg[rt]$, então
+$PC \leftarrow PC + (sign\_extend(deslocamento) \ll 2)$;
+caso contrário $PC$ permanece o valor já incrementado na busca.
+
+\textbf{Primeira ocorrência} --
+\texttt{bne \$t0, \$t2, tentaDividir} (linha 75):
+desvia para \texttt{tentaDividir} se \texttt{m} (em \texttt{\$t0}) ainda
+for diferente de 1.
+
+\textbf{Demais ocorrências:} linha 81 (\texttt{bne} direto); linhas 156 e
+167 (\texttt{bnez} expandido, com $rt = \$zero$).
+
+\subsection{Instrução \texttt{j}}
+
+\textbf{Formato (J):}
+\texttt{opcode(6) | endereço-alvo(26)}
+
+\textbf{Execução:}
+$PC \leftarrow PC[31{:}28] \,\|\, (endereço\text{-}alvo \ll 2)$
+
+\textbf{Primeira ocorrência} -- \texttt{j fim\_mmc} (linha 83): desvia
+incondicionalmente para o epílogo de \texttt{mmc}.
+
+\textbf{Demais ocorrências:} linhas 107, 111.
+
+\subsection{Instrução \texttt{beq}}
+
+\textbf{Formato (I):} igual ao de \texttt{bne}.
+
+\textbf{Execução:} se $Reg[rs] = Reg[rt]$, então
+$PC \leftarrow PC + (sign\_extend(deslocamento) \ll 2)$.
+
+\textbf{Única ocorrência} -- \texttt{beqz \$v0, nao\_dividiu}
+(linha 104), expandida para \texttt{beq \$v0, \$zero, nao\_dividiu}:
+desvia se \texttt{divide} não dividiu nenhum dos dois valores.
+
+\subsection{Instrução \texttt{mult}}
+
+\textbf{Formato (R especial):}
+\texttt{opcode(6) | rs(5) | rt(5) | (não usado, 10) | funct(6)} -- não
+grava em registrador de propósito geral.
+
+\textbf{Execução:}
+$\{HI, LO\} \leftarrow Reg[rs] \times Reg[rt]$
+(produto de 64 bits com sinal; \texttt{HI} recebe a parte alta,
+\texttt{LO} a parte baixa)
+
+\textbf{Única ocorrência} -- primeira metade de
+\texttt{mul \$s0, \$s0, \$s1} (linha 106) $\rightarrow$
+\texttt{mult \$s0, \$s1}:
+$\{HI, LO\} \leftarrow Reg[s0] \times Reg[s1]$.
+
+\subsection{Instrução \texttt{mflo}}
+
+\textbf{Formato (R especial):}
+\texttt{opcode(6) | (não usado, 10) | rd(5) | (não usado, 5) |
+funct(6)}
+
+\textbf{Execução:}
+$Reg[rd] \leftarrow LO$
+
+\textbf{Primeira ocorrência} -- segunda metade de
+\texttt{mul \$s0, \$s0, \$s1} (linha 106) $\rightarrow$
+\texttt{mflo \$s0}:
+$Reg[s0] \leftarrow LO$
+(acumula o divisor no MMC).
+
+\textbf{Demais ocorrências:} linhas 158, 169
+(quociente da divisão em \texttt{divide}).
+
+\subsection{Instrução \texttt{jr}}
+
+\textbf{Formato (R):}
+\texttt{opcode(6) | rs(5) | (não usado, 15) | funct(6)}
+
+\textbf{Execução:}
+$PC \leftarrow Reg[rs]$
+
+\textbf{Primeira ocorrência} -- \texttt{jr \$ra} (linha 122): retorna de
+\texttt{mmc} para \texttt{main}, usando o endereço restaurado da pilha.
+
+\textbf{Demais ocorrências:} linha 179 (retorno de \texttt{divide}).
+
+\subsection{Instrução \texttt{div}}
+
+\textbf{Formato (R especial):} igual ao de \texttt{mult}.
+
+\textbf{Execução:}
+$LO \leftarrow Reg[rs] \div Reg[rt]$
+(quociente, com sinal);
+\quad $HI \leftarrow Reg[rs] \bmod Reg[rt]$
+(resto)
+
+\textbf{Primeira ocorrência} -- \texttt{div \$t0, \$a2} (linha 153):
+$LO \leftarrow Reg[t0] \div Reg[a2]$;
+$HI \leftarrow Reg[t0] \bmod Reg[a2]$
+(testa se \texttt{*m} é divisível por \texttt{d}).
+
+\textbf{Demais ocorrências:} linha 164 (mesmo teste para \texttt{*n}).
+
+\subsection{Instrução \texttt{mfhi}}
+
+\textbf{Formato (R especial):} igual ao de \texttt{mflo}.
+
+\textbf{Execução:}
+$Reg[rd] \leftarrow HI$
+
+\textbf{Primeira ocorrência} -- \texttt{mfhi \$t1} (linha 154):
+$Reg[t1] \leftarrow HI$
+(recupera o resto da divisão de \texttt{*m} por \texttt{d}).
+
+\textbf{Demais ocorrências:} linha 165 (resto da divisão de \texttt{*n}).

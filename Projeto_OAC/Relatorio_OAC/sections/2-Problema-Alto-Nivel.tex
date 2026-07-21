@@ -29,18 +29,18 @@ ponte entre a descrição acima e a implementação em Assembly apresentada na S
 
 \begin{lstlisting}[language=C, caption={Pseudocódigo em C do algoritmo}, label={lst:pseudocodigo}]
 int divide(int *m, int *n, int d) {
-    int dividiu = 0;
+    int ok = 0;
 
     if (*m % d == 0) {
         *m /= d;
-        dividiu = 1;
+        ok = 1;
     }
     if (*n % d == 0) {
         *n /= d;
-        dividiu = 1;
+        ok = 1;
     }
 
-    return dividiu;
+    return ok;
 }
 
 int MMC(int m, int n) {
