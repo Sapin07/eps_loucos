@@ -5,56 +5,57 @@
 \subsection{Convenções adotadas}
 
 Para cada instrução, apresentamos as micro-operações dos três ciclos
-pedidos: busca, indireto e execução, usando notação de transferência entre
-registradores (RTL). As seguintes convenções são usadas:
+pedidos (busca, indireto e execução) usando notação de transferência entre
+registradores (RTL). Vale estabelecer as seguintes convenções usadas, algumas delas
+são evidenciadas aqui pois não serão repetidas novamente ao decorrer do relatório:
 
 \begin{description}
-\item[\texttt{PC}] Contador de programa.
-\item[\texttt{IR}] Registrador de instrução.
-\item[\texttt{Reg[x]}] Conteúdo do registrador \texttt{x}.
-\item[\texttt{MEM[end]}] Palavra de memória no endereço \texttt{end}.
-\item[\texttt{HI}, \texttt{LO}] Registradores especiais de 32 bits usados
-por multiplicação/divisão.
-\item[\textit{sign\_extend}] Função que estende o sinal de um campo
-imediato de 16 para 32 bits.
-\item[\textit{zero\_extend}] Função que completa com zeros à esquerda
-(usada nas instruções lógicas imediatas, como \texttt{ori}).
+\item[\texttt{PC} (\textit{Program Counter}) -] Registrador que armazena o endereço da próxima instrução a ser executada.
+
+\item[\texttt{IR} (\textit{Instruction Register}) -] Registrador que armazena a instrução atualmente em execução.
+
+\item[\texttt{Reg[x]} -] Conteúdo do registrador de propósito geral \texttt{x}.
+
+\item[\texttt{MEM[end]} -] Conteúdo da posição de memória localizada no endereço \texttt{end}.
+
+\item[\texttt{HI}, \texttt{LO} -] Registradores especiais utilizados para armazenar, respectivamente, a parte alta e a parte baixa dos resultados das instruções de multiplicação e divisão.
+
+\item[\textit{sign\_extend} -] Operação que estende um valor imediato de 16 para 32 bits preservando seu sinal.
+
+\item[\textit{zero\_extend} -] Operação que estende um valor imediato de 16 para 32 bits preenchendo os bits mais significativos com zeros.
 \end{description}
 
-\textbf{Ciclo de busca.} É idêntico para todas as instruções e por isso
-não é repetido em cada subseção:
-\begin{align*}
-IR &\leftarrow MEM[PC] \\
-PC &\leftarrow PC + 4
-\end{align*}
-
 \textbf{Ciclo indireto.} A arquitetura MIPS não possui modo de
-endereçamento indireto: nenhuma instrução do conjunto usa um endereço
+endereçamento indireto, isto é, nenhuma instrução do conjunto usa um endereço
 armazenado em memória para localizar seu operando. Mesmo as instruções de
 acesso à memória (\texttt{lw}, \texttt{sw}) calculam o endereço efetivo
 diretamente durante a execução, somando um registrador base a um
-deslocamento imediato. Por esse motivo, o ciclo indireto \textbf{não se
-aplica a nenhuma instrução} usada neste programa, e essa observação não
-será repetida individualmente.
+deslocamento imediato. Isso é consistente com a caracterização do MIPS
+como uma arquitetura \textit{load-store} feita no Apêndice A
+\cite{patterson2017}, que descreve \texttt{c(rx)} (a soma de uma
+constante ao conteúdo de um registrador base) como o único modo de
+endereçamento de memória realmente oferecido pela máquina. Por esse
+motivo, o ciclo indireto não se aplica a absolutamente nenhuma instrução
+usada neste programa. \\
 
-\textbf{Ciclo de execução.} Por simplicidade, e por o enunciado
-especificar apenas três ciclos (busca, indireto, execução), a
-decodificação/leitura de operandos e a escrita do resultado
+\textbf{Ciclo de execução.} A decodificação/leitura de operandos e a escrita do resultado
 (\textit{write-back}) são apresentadas como parte do ciclo de execução de
-cada instrução, em vez de fases isoladas.
+cada instrução, em vez de fases isoladas. \\
 
 \textbf{Repetição de ocorrências.} Quando a mesma instrução real aparece
 mais de uma vez no código (inclusive quando gerada por diferentes
-pseudo-instruções), a primeira ocorrência é detalhada por completo; as
-demais, por executarem exatamente a mesma sequência de micro-operações,
-são apenas listadas por linha/rótulo.
+pseudo-instruções), a primeira ocorrência será detalhada por completo. No entanto, as
+demais são apenas listadas por linha/rótulo. Isso se deve por executarem exatamente a mesma sequência de micro-operações.
 
 \subsection{Pseudo-instruções e suas expansões}
 
-A Tabela \ref{tab:pseudo} lista as pseudo-instruções empregadas pela
-equipe e as instruções reais que o montador (MARS/SPIM) gera a partir
-delas. O detalhamento de micro-operações de cada instrução real gerada
-está nas subseções correspondentes, adiante.
+A Tabela \ref{tab:pseudo} lista as pseudo-instruções adotadas e as instruções reais que o montador (MARS) gera a partir
+delas. Essa distinção entre instruções reais e pseudo-instruções, assim
+como a descrição de cada uma das pseudo-instruções usadas, é
+documentada na Seção A.10 do Apêndice A \cite{patterson2017}, que trata
+especificamente do assembly do MIPS R2000 simulado pelo SPIM. O
+detalhamento de micro-operações de cada instrução real gerada está nas
+subseções correspondentes, a seguir:
 
 \begin{table}[h]
 \centering
@@ -67,42 +68,42 @@ está nas subseções correspondentes, adiante.
 \hline
 
 \texttt{li \$reg, imed} &
-\texttt{li \$v0, 4} (l.\,14) &
+\texttt{li \$v0, 4} (li\,14) &
 \texttt{ori \$reg, \$zero, imed}$^{*}$ \\
 \hline
 
 \texttt{la \$reg, rótulo} &
-\texttt{la \$a0, msg\_m} (l.\,15) &
+\texttt{la \$a0, msg\_m} (li\,15) &
 \texttt{lui \$reg, alta(rótulo)}; \texttt{ori \$reg, \$reg, baixa(rótulo)} \\
 \hline
 
 \texttt{lw \$reg, rótulo} &
-\texttt{lw \$t0, m} (l.\,68) &
+\texttt{lw \$t0, m} (li\,68) &
 \texttt{lui \$at, alta(rótulo)}; \texttt{lw \$reg, baixa(rótulo)(\$at)} \\
 \hline
 
 \texttt{sw \$reg, rótulo} &
-\texttt{sw \$v0, m} (l.\,21) &
+\texttt{sw \$v0, m} (li\,21) &
 \texttt{lui \$at, alta(rótulo)}; \texttt{sw \$reg, baixa(rótulo)(\$at)} \\
 \hline
 
 \texttt{move \$rd, \$rs} &
-\texttt{move \$t0, \$v0} (l.\,37) &
+\texttt{move \$t0, \$v0} (li\,37) &
 \texttt{addu \$rd, \$rs, \$zero} \\
 \hline
 
 \texttt{beqz \$rs, rótulo} &
-\texttt{beqz \$v0, nao\_dividiu} (l.\,104) &
+\texttt{beqz \$v0, nao\_dividiu} (li\,104) &
 \texttt{beq \$rs, \$zero, rótulo} \\
 \hline
 
 \texttt{bnez \$rs, rótulo} &
-\texttt{bnez \$t1, testa\_n} (l.\,156) &
+\texttt{bnez \$t1, testa\_n} (li\,156) &
 \texttt{bne \$rs, \$zero, rótulo} \\
 \hline
 
 \texttt{mul \$rd, \$rs, \$rt} &
-\texttt{mul \$s0, \$s0, \$s1} (l.\,106) &
+\texttt{mul \$s0, \$s0, \$s1} (li\,106) &
 \texttt{mult \$rs, \$rt}; \texttt{mflo \$rd} \\
 \hline
 
@@ -111,17 +112,26 @@ está nas subseções correspondentes, adiante.
 \label{tab:pseudo}
 \end{table}
 
-\footnotesize{$^{*}$Todos os valores imediatos usados em \texttt{li} no
-programa (0, 1, 2, 4, 5, 10) cabem em 16 bits sem sinal; por isso o
-montador gera apenas um \texttt{ori}, sem necessidade de \texttt{lui}
-adicional.}
-\normalsize
+Nas subseções seguintes, cada instrução real gerada é detalhada individualmente, na ordem de sua primeira aparição no código. Cada descrição segue uma estrutura comum, composta pelo formato da instrução, sua operação em nível de transferência entre registradores (RTL), sua utilização no contexto do programa e um exemplo correspondente à primeira ocorrência no código, seguido das demais ocorrências quando aplicável.
+
+O campo \textbf{Formato (I, R ou J)} apresenta a organização dos 32 bits da instrução segundo a arquitetura MIPS, indicando a disposição de seus campos. Entre esses campos, o \texttt{opcode} identifica a operação a ser executada pelo processador e, nas instruções do formato R, o campo \texttt{funct} complementa essa identificação, distinguindo operações que compartilham o mesmo \texttt{opcode}. Os valores apresentados para esses campos seguem a especificação do manual de referência da arquitetura \cite{mips2016}.
+
+Começamos pelas instruções geradas pela pseudo-instrução \texttt{li}, usada para carregar constantes pequenas em registradores.
+
+
+% COMEÇO DA BAGAÇA TODA -------------------------------
 
 \subsection{Instrução \texttt{ori}}
 
+A instrução \texttt{ori} (\textit{OR Immediate}) realiza uma operação lógica
+OR entre o conteúdo de um registrador e um valor imediato de 16 bits. Neste
+programa, ela é utilizada principalmente na expansão da pseudo-instrução
+\texttt{li}, permitindo carregar constantes pequenas diretamente em um
+registrador.
+
 \begin{instrucao}{ori}
 \begin{description}
-\item[Formato (I):] \texttt{opcode(6) | rs(5) | rt(5) | imediato(16)}
+\item[Formato (I):] \texttt{opcode(6)=001101 | rs(5) | rt(5) | imediato(16)}
 \item[Execução:] $Reg[rt] \leftarrow Reg[rs] \lor zero\_extend(imediato)$
 \item[Uso:] Implementa a carga de constantes de \texttt{li} (com
 $rs = \$zero$) e a metade menos significativa do endereço em \texttt{la}
@@ -136,9 +146,15 @@ $Reg[v0] \leftarrow Reg[zero] \lor zero\_extend(4) = 4$.
 
 \subsection{Instrução \texttt{lui}}
 
+A instrução \texttt{lui} (\textit{Load Upper Immediate}) carrega um valor
+imediato nos 16 bits mais significativos de um registrador, preenchendo os
+16 bits inferiores com zeros. No programa, ela é empregada pelo montador na
+expansão de pseudo-instruções que necessitam construir endereços completos
+de memória.
+
 \begin{instrucao}{lui}
 \begin{description}
-\item[Formato (I):] \texttt{opcode(6) | rs(5, não usado) | rt(5) | imediato(16)}
+\item[Formato (I):] \texttt{opcode(6)=001111 | rs(5, não usado) | rt(5) | imediato(16)}
 \item[Execução:] $Reg[rt] \leftarrow imediato \ll 16$
 (bits menos significativos preenchidos com zero)
 \item[Uso:] Usada como primeira metade de \texttt{la} e das formas de
@@ -154,10 +170,17 @@ $Reg[a0] \leftarrow alta(msg\_m) \ll 16$.
 
 \subsection{Instrução \texttt{syscall}}
 
+Encerrada a carga de constantes e endereços, o programa realiza sua
+primeira chamada de sistema, para exibir uma mensagem ao usuário. Os
+códigos de serviço correspondem à
+tabela de chamadas de sistema do SPIM (Seção A.9, Figura A.9.1,
+\cite{patterson2017}), que também especifica a convenção de passagem de
+parâmetros, no caso, o código do serviço em \texttt{\$v0} e os argumentos em
+\texttt{\$a0}--\texttt{\$a3}.
+
 \begin{instrucao}{syscall}
 \begin{description}
-\item[Formato (especial):] apenas \texttt{opcode} e \texttt{funct}; os
-demais campos não são usados.
+\item[Formato (especial):] \texttt{opcode(6)=000000 | code(20) | funct(6)=001100}
 \item[Execução:] dispara uma exceção (\textit{trap}) que transfere o
 controle ao núcleo do simulador. O núcleo lê o código de serviço em
 \texttt{\$v0} e executa a rotina correspondente (imprimir string usando o
@@ -172,9 +195,13 @@ string apontada por \texttt{\$a0} (mensagem "Digite m: ").
 
 \subsection{Instrução \texttt{sw}}
 
+A instrução \texttt{sw} (\textit{Store Word}) armazena uma palavra de 32 bits
+de um registrador em uma posição de memória. No programa, ela é utilizada
+para atualizar as variáveis globais após a execução das operações de cálculo.
+
 \begin{instrucao}{sw}
 \begin{description}
-\item[Formato (I):] \texttt{opcode(6) | rs(5) | rt(5) | deslocamento(16)}
+\item[Formato (I):] \texttt{opcode(6)=101011 | rs(5) | rt(5) | deslocamento(16)}
 \item[Execução:] $EA \leftarrow Reg[rs] + sign\_extend(deslocamento)$;
 $MEM[EA] \leftarrow Reg[rt]$
 \item[Primeira ocorrência:] \texttt{sw \$v0, m} (linha 21), expandida
@@ -189,9 +216,14 @@ $MEM[EA] \leftarrow Reg[v0]$
 
 \subsection{Instrução \texttt{jal}}
 
+A instrução \texttt{jal} (\textit{Jump And Link}) realiza a chamada de uma
+sub-rotina, desviando a execução e armazenando o endereço de retorno no
+registrador \texttt{\$ra}. No programa, ela é utilizada para invocar as
+sub-rotinas responsáveis pelo cálculo do MMC e pelas divisões sucessivas.
+
 \begin{instrucao}{jal}
 \begin{description}
-\item[Formato (J):] \texttt{opcode(6) | endereço-alvo(26)}
+\item[Formato (J):] \texttt{opcode(6)=000011 | endereço-alvo(26)}
 \item[Execução:] $Reg[ra] \leftarrow PC$
 (endereço já incrementado na busca, ou seja, o da instrução seguinte);
 $PC \leftarrow PC[31{:}28] \,\|\, (\text{endereço-alvo} \ll 2)$
@@ -204,9 +236,14 @@ rótulo \texttt{mmc}.
 
 \subsection{Instrução \texttt{addu}}
 
+A instrução \texttt{addu} (\textit{Add Unsigned}) realiza a soma entre dois
+registradores sem considerar detecção de overflow. Neste programa, ela é
+utilizada pelo montador para implementar a pseudo-instrução \texttt{move},
+copiando o conteúdo de um registrador para outro.
+
 \begin{instrucao}{addu}
 \begin{description}
-\item[Formato (R):] \texttt{opcode(6) | rs(5) | rt(5) | rd(5) | shamt(5) | funct(6)}
+\item[Formato (R):] \texttt{opcode(6)=000000 | rs(5) | rt(5) | rd(5) | shamt(5) | funct(6)=100001}
 \item[Execução:] $Reg[rd] \leftarrow Reg[rs] + Reg[rt]$
 (soma sem verificação de \textit{overflow})
 \item[Uso:] Implementa \texttt{move}, sempre com $rt = \$zero$, de modo
@@ -221,12 +258,17 @@ $Reg[t0] \leftarrow Reg[v0] + 0$
 
 \subsection{Instrução \texttt{addi}}
 
+A instrução \texttt{addi} (\textit{Add Immediate}) soma um valor imediato ao
+conteúdo de um registrador, armazenando o resultado em um registrador de
+destino. No programa, ela é empregada principalmente para atualizar
+contadores, ajustar ponteiros de pilha e incrementar variáveis de controle.
+
 \begin{instrucao}{addi}
 \begin{description}
-\item[Formato (I):] \texttt{opcode(6) | rs(5) | rt(5) | imediato(16)}
+\item[Formato (I):] \texttt{opcode(6)=001000 | rs(5) | rt(5) | imediato(16)}
 \item[Execução:] $Reg[rt] \leftarrow Reg[rs] + sign\_extend(imediato)$
-\item[Uso:] Diferente de \texttt{ori}, o imediato aqui é estendido com sinal, e (pela
-especificação do MIPS) a instrução pode gerar exceção de
+\item[Uso:] Diferente de \texttt{ori}, o imediato aqui é estendido com
+sinal, e (pela especificação do MIPS) a instrução pode gerar exceção de
 \textit{overflow} -- o que não ocorre neste programa, já que os valores
 manipulados são pequenos.
 \item[Primeira ocorrência:] \texttt{addi \$sp, \$sp, -12}
@@ -238,9 +280,14 @@ abrindo espaço na pilha para o prólogo de \texttt{mmc}.
 
 \subsection{Instrução \texttt{lw}}
 
+A instrução \texttt{lw} (\textit{Load Word}) realiza a leitura de uma palavra
+de 32 bits da memória para um registrador de propósito geral. Neste programa,
+ela é utilizada para carregar os valores das variáveis armazenadas em memória
+antes de sua manipulação pelas sub-rotinas.
+
 \begin{instrucao}{lw}
 \begin{description}
-\item[Formato (I):] igual ao de \texttt{sw}.
+\item[Formato (I):] \texttt{opcode(6)=100011 | rs(5) | rt(5) | deslocamento(16)}
 \item[Execução:] $EA \leftarrow Reg[rs] + sign\_extend(deslocamento)$;
 $Reg[rt] \leftarrow MEM[EA]$
 \item[Primeira ocorrência:] \texttt{lw \$t0, m} (linha 68), expandida
@@ -255,9 +302,14 @@ $Reg[t0] \leftarrow MEM[EA]$
 
 \subsection{Instrução \texttt{bne}}
 
+A instrução \texttt{bne} (\textit{Branch if Not Equal}) realiza um desvio
+condicional quando os conteúdos de dois registradores são diferentes. No
+programa, ela é empregada para controlar laços de repetição e implementar a
+pseudo-instrução \texttt{bnez}.
+
 \begin{instrucao}{bne}
 \begin{description}
-\item[Formato (I):] \texttt{opcode(6) | rs(5) | rt(5) | deslocamento(16)}
+\item[Formato (I):] \texttt{opcode(6)=000101 | rs(5) | rt(5) | deslocamento(16)}
 \item[Execução:] se $Reg[rs] \neq Reg[rt]$, então
 $PC \leftarrow PC + (sign\_extend(deslocamento) \ll 2)$;
 caso contrário $PC$ permanece o valor já incrementado na busca.
@@ -272,9 +324,14 @@ for diferente de 1.
 
 \subsection{Instrução \texttt{j}}
 
+A instrução \texttt{j} (\textit{Jump}) realiza um salto incondicional para um
+novo endereço de execução. Neste programa, ela é utilizada para alterar o
+fluxo de controle entre diferentes trechos do algoritmo, sem necessidade de
+armazenar um endereço de retorno.
+
 \begin{instrucao}{j}
 \begin{description}
-\item[Formato (J):] \texttt{opcode(6) | endereço-alvo(26)}
+\item[Formato (J):] \texttt{opcode(6)=000010 | endereço-alvo(26)}
 \item[Execução:] $PC \leftarrow PC[31{:}28] \,\|\, (\text{endereço-alvo} \ll 2)$
 \item[Primeira ocorrência:] \texttt{j fim\_mmc} (linha 83): desvia
 incondicionalmente para o epílogo de \texttt{mmc}.
@@ -284,9 +341,14 @@ incondicionalmente para o epílogo de \texttt{mmc}.
 
 \subsection{Instrução \texttt{beq}}
 
+A instrução \texttt{beq} (\textit{Branch if Equal}) realiza um desvio
+condicional quando os conteúdos de dois registradores são iguais. Neste
+programa, ela é utilizada na implementação de decisões lógicas e na expansão
+da pseudo-instrução \texttt{beqz}.
+
 \begin{instrucao}{beq}
 \begin{description}
-\item[Formato (I):] igual ao de \texttt{bne}.
+\item[Formato (I):] \texttt{opcode(6)=000100 | rs(5) | rt(5) | deslocamento(16)}
 \item[Execução:] se $Reg[rs] = Reg[rt]$, então
 $PC \leftarrow PC + (sign\_extend(deslocamento) \ll 2)$.
 \item[Única ocorrência:] \texttt{beqz \$v0, nao\_dividiu}
@@ -297,11 +359,16 @@ desvia se \texttt{divide} não dividiu nenhum dos dois valores.
 
 \subsection{Instrução \texttt{mult}}
 
+A instrução \texttt{mult} (\textit{Multiply}) realiza a multiplicação de dois
+operandos armazenados em registradores, gravando o resultado de 64 bits nos
+registradores especiais \texttt{HI} e \texttt{LO}. No programa, ela faz parte
+da expansão da pseudo-instrução \texttt{mul}.
+
 \begin{instrucao}{mult}
 \begin{description}
 \item[Formato (R especial):]
-\texttt{opcode(6) | rs(5) | rt(5) | (não usado, 10) | funct(6)} -- não
-grava em registrador de propósito geral.
+\texttt{opcode(6)=000000 | rs(5) | rt(5) | (não usado, 10) | funct(6)=011000}
+-- não grava em registrador de propósito geral.
 \item[Execução:] $\{HI, LO\} \leftarrow Reg[rs] \times Reg[rt]$
 (produto de 64 bits com sinal; \texttt{HI} recebe a parte alta,
 \texttt{LO} a parte baixa)
@@ -314,11 +381,16 @@ $\{HI, LO\} \leftarrow Reg[s0] \times Reg[s1]$.
 
 \subsection{Instrução \texttt{mflo}}
 
+A instrução \texttt{mflo} (\textit{Move From LO}) copia para um registrador de
+propósito geral o conteúdo do registrador especial \texttt{LO}. Neste
+programa, ela é utilizada para recuperar o resultado das multiplicações
+realizadas pela instrução \texttt{mult}.
+
 \begin{instrucao}{mflo}
 \begin{description}
 \item[Formato (R especial):]
-\texttt{opcode(6) | (não usado, 10) | rd(5) | (não usado, 5) |
-funct(6)}
+\texttt{opcode(6)=000000 | (não usado, 10) | rd(5) | (não usado, 5) |
+funct(6)=010010}
 \item[Execução:] $Reg[rd] \leftarrow LO$
 \item[Primeira ocorrência:] segunda metade de
 \texttt{mul \$s0, \$s0, \$s1} (linha 106) $\rightarrow$
@@ -332,9 +404,14 @@ $Reg[s0] \leftarrow LO$
 
 \subsection{Instrução \texttt{jr}}
 
+A instrução \texttt{jr} (\textit{Jump Register}) transfere o controle para o
+endereço contido em um registrador. Neste programa, ela é utilizada para
+retornar de sub-rotinas por meio do endereço previamente armazenado em
+\texttt{\$ra}.
+
 \begin{instrucao}{jr}
 \begin{description}
-\item[Formato (R):] \texttt{opcode(6) | rs(5) | (não usado, 15) | funct(6)}
+\item[Formato (R):] \texttt{opcode(6)=000000 | rs(5) | (não usado, 15) | funct(6)=001000}
 \item[Execução:] $PC \leftarrow Reg[rs]$
 \item[Primeira ocorrência:] \texttt{jr \$ra} (linha 122): retorna de
 \texttt{mmc} para \texttt{main}, usando o endereço restaurado da pilha.
@@ -344,9 +421,14 @@ $Reg[s0] \leftarrow LO$
 
 \subsection{Instrução \texttt{div}}
 
+A instrução \texttt{div} (\textit{Divide}) realiza a divisão inteira entre
+dois registradores, armazenando o quociente em \texttt{LO} e o resto em
+\texttt{HI}. No programa, ela é utilizada para verificar se um divisor
+candidato divide exatamente os valores utilizados no cálculo do MMC.
+
 \begin{instrucao}{div}
 \begin{description}
-\item[Formato (R especial):] igual ao de \texttt{mult}.
+\item[Formato (R especial):] \texttt{opcode(6)=000000 | rs(5) | rt(5) | (não usado, 10) | funct(6)=011010}
 \item[Execução:] $LO \leftarrow Reg[rs] \div Reg[rt]$
 (quociente, com sinal);
 $HI \leftarrow Reg[rs] \bmod Reg[rt]$
@@ -361,9 +443,14 @@ $HI \leftarrow Reg[t0] \bmod Reg[a2]$
 
 \subsection{Instrução \texttt{mfhi}}
 
+A instrução \texttt{mfhi} (\textit{Move From HI}) copia para um registrador de
+propósito geral o conteúdo do registrador especial \texttt{HI}. Neste
+programa, ela é utilizada para verificar o resto produzido pela instrução
+\texttt{div}, permitindo determinar se uma divisão foi exata.
+
 \begin{instrucao}{mfhi}
 \begin{description}
-\item[Formato (R especial):] igual ao de \texttt{mflo}.
+\item[Formato (R especial):] \texttt{opcode(6)=000000 | (não usado, 10) | rd(5) | (não usado, 5) | funct(6)=010000}
 \item[Execução:] $Reg[rd] \leftarrow HI$
 \item[Primeira ocorrência:] \texttt{mfhi \$t1} (linha 154):
 $Reg[t1] \leftarrow HI$
