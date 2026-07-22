@@ -170,13 +170,12 @@ $Reg[a0] \leftarrow alta(msg\_m) \ll 16$.
 
 \subsection{Instrução \texttt{syscall}}
 
-Encerrada a carga de constantes e endereços, o programa realiza sua
-primeira chamada de sistema, para exibir uma mensagem ao usuário. Os
-códigos de serviço correspondem à
-tabela de chamadas de sistema do SPIM (Seção A.9, Figura A.9.1,
-\cite{patterson2017}), que também especifica a convenção de passagem de
-parâmetros, no caso, o código do serviço em \texttt{\$v0} e os argumentos em
-\texttt{\$a0}--\texttt{\$a3}.
+A instrução \texttt{syscall} (\textit{System Call}) é utilizada para
+solicitar a execução de serviços oferecidos pelo sistema ou, no caso
+do simulador MARS/SPIM, pelo próprio ambiente de execução. 
+Neste programa, ela é empregada para realizar operações de entrada
+e saída, como impressão de mensagens, leitura de valores inteiros
+e encerramento da execução.
 
 \begin{instrucao}{syscall}
 \begin{description}
