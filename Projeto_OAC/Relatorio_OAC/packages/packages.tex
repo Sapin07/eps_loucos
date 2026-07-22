@@ -7,6 +7,7 @@
 \usepackage{hyperref}
 \usepackage{tabularx}
 \usepackage[bottom=3cm,top=3cm,left=3cm,right=3cm]{geometry}
+\usepackage[most]{tcolorbox}
 
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codeblue}{rgb}{0,0,0.6}
@@ -39,4 +40,20 @@
   tabsize=4,
   showstringspaces=false,
   captionpos=b
+}
+
+% BOX DE INSTRUÇÃO -------------------------------------------------------
+
+\newtcolorbox{instrucao}[1]{
+  enhanced,
+  breakable,
+  colback=backcolour,
+  colframe=codeblue,
+  colbacktitle=codeblue,
+  coltitle=white,
+  fonttitle=\bfseries\ttfamily,
+  title=#1,
+  arc=2pt,
+  boxrule=0.6pt,
+  left=6pt, right=6pt, top=4pt, bottom=4pt,
 }
