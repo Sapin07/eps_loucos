@@ -41,7 +41,7 @@ public class Game {
             if (GameLib.iskeyPressed(GameLib.KEY_ESCAPE)) {
                 break;
             }
-
+            // teste
             update(delta);
             render();
         }
