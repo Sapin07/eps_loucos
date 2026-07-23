@@ -7,6 +7,14 @@ import game.entities.Entity;
 import lib.GameLib;
 
 public class Game {
+    // todo:
+    // - collisor manager (I want to handle with it)
+    // - spawner
+    // - parser
+    // - ** read settings and phase parser (priority)
+    // - try/catchs (we need to adjust some routines to be more robust)
+    // - a logger? import java.util.Logger (is useful for dev/debug time and a standard pattern on Any kind of projects. Check it ;))
+
     private GameState state;
     private long lastFrameTime;
 

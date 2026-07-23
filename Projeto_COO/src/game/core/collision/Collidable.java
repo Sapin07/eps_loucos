@@ -20,5 +20,4 @@ public interface Collidable{
             && Math.abs(getY() - other.getY()) < (halfH1 + halfH2);
     };
     // this must be overwritten based on each class
-    void collide(Collidable other);
 }
