@@ -3,12 +3,15 @@ package game;
 import java.util.List;
 import java.util.LinkedList;
 
-import game.entities.Entity;
+import game.core.collision.CollisionManager;
+import game.entities.Player;
+import game.entities.Enemy;
+import game.entities.Projectile;
+
 import lib.GameLib;
 
 public class Game {
     // todo:
-    // - collisor manager (I want to handle with it)
     // - spawner
     // - parser
     // - ** read settings and phase parser (priority)
@@ -18,16 +21,27 @@ public class Game {
     private GameState state;
     private long lastFrameTime;
 
+    private Player player;
     // imutable
-    private final List<Entity> entities;
+    private final List<Enemy> enemies;
+    private final List<Projectile> projectiles;
+    private final CollisionManager collisionMan;
 
     public Game() {
         this.state = GameState.LOADING;
-        this.entities = new LinkedList<>();
+        this.enemies = new LinkedList<>();
+        this.projectiles = new LinkedList<>();
+        this.collisionMan = new CollisionManager();
     }
 
     public void run(){
         GameLib.initGraphics();
+
+        player = new Player(GameLib.WIDTH/ 2.0, GameLib.HEIGHT - 60, 3); // just a example, a config file is better
+
+        // hard coded for now, we need a Spawn manager
+        enemies.add(new Enemy(100, -20, 3, 80));
+        enemies.add(new Enemy(380, -80, 3, 80));
 
         state = GameState.PLAYING;
         lastFrameTime = System.currentTimeMillis();
@@ -38,7 +52,8 @@ public class Game {
             long delta = now - lastFrameTime;
             lastFrameTime = now;
 
-            if (GameLib.iskeyPressed(GameLib.KEY_ESCAPE)) {
+            if (GameLib.iskeyPressed(GameLib.KEY_ESCAPE) || !player.isActive()) {
+                state = GameState.GAME_OVER;
                 break;
             }
 
@@ -48,16 +63,39 @@ public class Game {
     }
 
     private void update(long delta) {
-        for (Entity e: entities){
+        // other good point fot multi threaded approach
+        player.update(delta);
+
+        for (Enemy e : enemies){
             e.update(delta);
+            spawnIfPresent(e.tryShoot());
         }
 
-        entities.removeIf(e -> !e.isActive());
+        for (Projectile p : projectiles){
+            p.update(delta);
+        }
+
+        collisionMan.checkCollisions(player, enemies, projectiles);
+
+        enemies.removeIf(e -> !e.isActive());
+        projectiles.removeIf(p -> !p.isActive());
+    }
+
+    private void spawnIfPresent(Projectile p){
+        if (p != null)
+            projectiles.add(p);
     }
 
     private void render() {
-        for (Entity e : entities){
+        // multi threaded is good
+        player.draw();
+
+        for(Enemy e : enemies){
             e.draw();
+        }
+
+        for(Projectile p : projectiles){
+            p.draw();
         }
 
         GameLib.display();
