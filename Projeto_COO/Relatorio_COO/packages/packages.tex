@@ -1,0 +1,52 @@
+% PACOTES E DEFINIÇÕES ------------------------------------------
+\usepackage[brazilian]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage[bottom=3cm,top=3cm,left=3cm,right=3cm]{geometry}
+\usepackage[most]{tcolorbox}
+
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeblue}{rgb}{0,0,0.6}
+\definecolor{codegreen}{rgb}{0,0.5,0}
+\definecolor{backcolour}{rgb}{0.97,0.97,0.97}
+
+\renewcommand{\lstlistingname}{Código}
+
+% ESCREVER LINGUAGEM JAVA -----------------------------------------
+
+\lstset{
+  language=Java,
+  backgroundcolor=\color{backcolour},
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{codeblue}\bfseries,
+  commentstyle=\color{codegray}\itshape,
+  stringstyle=\color{codegreen},
+  numbers=left,
+  numberstyle=\tiny\color{codegray},
+  numbersep=8pt,
+  frame=single,
+  breaklines=true,
+  tabsize=4,
+  showstringspaces=false,
+  captionpos=b
+}
+
+% BOX DE DECISÃO DE DESIGN -------------------------------------------------------
+
+\newtcolorbox{decisao}[1]{
+  enhanced,
+  breakable,
+  colback=backcolour,
+  colframe=codeblue,
+  colbacktitle=codeblue,
+  coltitle=white,
+  fonttitle=\bfseries\ttfamily,
+  title=#1,
+  arc=2pt,
+  boxrule=0.6pt,
+  left=6pt, right=6pt, top=4pt, bottom=4pt,
+}

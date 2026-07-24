@@ -1,0 +1,80 @@
+\section{Arquitetura da reorganização do projeto}
+\label{sec:estrutura}
+
+\subsection{Visão geral da hierarquia de classes adotadas}
+
+Para substituir a implementação procedural do jogo, o projeto foi reorganizado
+em uma estrutura baseada em classes e interfaces, separando responsabilidades e
+agrupando comportamentos semelhantes. A organização dos pacotes ficou da
+seguinte forma:
+
+\begin{itemize}
+    \item \texttt{game.core -} reúne interfaces e classes utilizadas por diferentes partes do jogo.
+    \item \texttt{game.core.collision -} concentra a lógica relacionada ao sistema de colisão.
+    \item \texttt{game.entities -} contém as entidades que representam os elementos do jogo.
+\end{itemize}
+
+A hierarquia de classes concretas ficou assim:
+
+\begin{center}
+    WOW IMAGEM DE UML FODÃO
+\end{center}
+
+A hierarquia foi construída de forma que cada nível acrescente apenas as
+características específicas daquele conjunto de entidades. Assim, informações
+comuns, como posição, movimentação ou vida, são definidas apenas uma vez e
+reaproveitadas pelas subclasses, reduzindo duplicação de código e facilitando a
+manutenção da implementação.
+
+\subsection{Interfaces em \texttt{game.core}}
+
+As interfaces foram utilizadas para representar capacidades independentes das
+entidades do jogo. Em vez de concentrar todos os comportamentos em uma única
+classe base, cada interface define apenas uma responsabilidade específica,
+permitindo que cada classe implemente somente os comportamentos de que realmente
+necessita.
+
+\begin{itemize}
+    \item \texttt{Drawable}: define a operação responsável pelo desenho da entidade na tela.
+    \item \texttt{Updatable}: representa objetos cujo estado precisa ser atualizado a cada ciclo do jogo.
+    \item \texttt{Damageable}: reúne as operações relacionadas ao sistema de dano e vida, sendo implementada apenas pelas entidades que podem sofrer dano.
+    \item \texttt{Collidable}: define as informações necessárias para o sistema de colisão e disponibiliza um método padrão para verificar a sobreposição entre dois objetos.
+\end{itemize}
+
+Essa separação torna a arquitetura mais flexível, pois evita que uma classe
+precise implementar comportamentos que não fazem sentido para ela. Por exemplo,
+um elemento da interface gráfica pode ser desenhado sem necessariamente
+participar do sistema de colisão.
+
+\subsection{Por que \texttt{GameObject} e \texttt{Entity} são classes separadas}
+
+A classe \texttt{GameObject} reúne apenas as informações presentes em qualquer
+objeto exibido na tela, como posição e estado de atividade. A classe
+\texttt{Entity} estende essa estrutura adicionando atributos relacionados à
+movimentação e às colisões, como velocidade e dimensões.
+
+Essa divisão permite que diferentes tipos de entidade compartilhem toda a lógica
+básica de movimentação sem carregar responsabilidades que não lhes pertencem.
+Por exemplo, projéteis e power-ups herdam o comportamento de movimento definido
+em \texttt{Entity}, mas não possuem atributos relacionados à vida ou dano, que
+só passam a existir na classe \texttt{Ship}.
+
+Com essa organização, a lógica comum de atualização permanece concentrada em um
+único ponto da hierarquia e é automaticamente reutilizada pelas subclasses.
+
+\subsection{Um único algoritmo de colisão para todos os pares}
+
+A interface \texttt{Collidable} permitiu unificar a lógica de colisão em um
+único algoritmo capaz de operar sobre qualquer objeto que implemente esse
+contrato. Dessa forma, o mesmo mecanismo pode ser utilizado para verificar
+colisões entre jogadores, inimigos, projéteis e power-ups.
+
+Essa abordagem elimina a necessidade de criar uma implementação específica para
+cada combinação de entidades. Sempre que um novo objeto participa do sistema de
+colisão, basta que ele implemente \texttt{Collidable} para que passe a utilizar
+o algoritmo já existente.
+
+\subsection{Uso de Coleções Java}
+
+Texto........
+
