@@ -10,7 +10,7 @@ public interface Collidable{
 
     // Check collision based on position and type of object
     // e.g. case enemy collide with another enemy hasCollided -> false
-    default boolean hasCollided(Collidable other){
+    default boolean hasCollidedWith(Collidable other){
         double halfW1 = getWidth() / 2.0;
         double halfH1 = getHeight() / 2.0;
         double halfW2 = other.getWidth() / 2.0;
