@@ -22,17 +22,9 @@ public class EnemyType2 extends Enemy {
     private static final double SHOOT_INTERVAL_MS = 600;
     private static final int SHOOT_DAMAGE = 1;
 
-    private long timeSinceLastShot = 0;
-
     public EnemyType2(double x, double y) {
-        super(x, y, SIZE, SIZE, MAX_HEALTH, Color.RED);
+        super(x, y, SIZE, SIZE, MAX_HEALTH, Color.RED, SHOOT_INTERVAL_MS);
         setVelocity(0, FALL_SPEED);
-    }
-
-    @Override
-    public void update(long delta) {
-        super.update(delta);
-        timeSinceLastShot += delta;
     }
 
     @Override
@@ -42,12 +34,10 @@ public class EnemyType2 extends Enemy {
     }
 
     @Override
-    public Projectile shoot(long currentTime, double targetX, double targetY) {
-        if (timeSinceLastShot < SHOOT_INTERVAL_MS) {
+    public Projectile tryShoot(long currentTime, double targetX, double targetY) {
+        if (!readyToShoot()) {
             return null;
         }
-
-        timeSinceLastShot = 0;
 
         double dx = targetX - x;
         double dy = targetY - y;

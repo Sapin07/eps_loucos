@@ -1,8 +1,8 @@
 package game.entities;
 
 import java.awt.Color;
-
 import lib.GameLib;
+
 public class Projectile extends Entity{
     private static final double WIDTH = 4;
     private static final double HEIGHT = 10;

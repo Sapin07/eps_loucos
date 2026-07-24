@@ -3,7 +3,8 @@ package game.entities;
 import java.awt.Color;
 import lib.GameLib;
 
-// Green Circle that shoots up-down until dies or , what comes first
+// Green Circle that spaws (x,y) shoots up-down (and moves the same direction)
+// until dies or leaves the screen, what comes first
 
 public class EnemyType1 extends Enemy {
     // health designedly to be 1, because basic enemys dies with a single hit
@@ -15,17 +16,9 @@ public class EnemyType1 extends Enemy {
     private static final double SHOOT_INTERVAL_MS = 500;
     private static final int SHOOT_DAMAGE = 1;
 
-    private long timeSinceLastShot = 0;
-
     public EnemyType1(double x, double y) {
-        super(x, y, SIZE, SIZE, MAX_HEALTH, Color.GREEN);
+        super(x, y, SIZE, SIZE, MAX_HEALTH, Color.GREEN, SHOOT_INTERVAL_MS);
         setVelocity(0, FALL_SPEED);
-    }
-
-    @Override
-    public void update(long delta) {
-        super.update(delta);
-        timeSinceLastShot += delta;
     }
 
     @Override
@@ -35,12 +28,11 @@ public class EnemyType1 extends Enemy {
     }
 
     @Override
-    public Projectile shoot(long currentTime, double targetX, double targetY) {
-        if (timeSinceLastShot < SHOOT_INTERVAL_MS) {
+    public Projectile tryShoot(long currentTime, double targetX, double targetY) {
+        if (!readyToShoot()) {
             return null;
         }
 
-        timeSinceLastShot = 0;
         return new Projectile(x, y + SIZE / 2, 0, PROJECTILE_SPEED, OwnerType.ENEMY, SHOOT_DAMAGE, Color.RED);
     }
 }
