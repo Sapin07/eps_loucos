@@ -1,0 +1,227 @@
+\section{Crítica ao Código Original}
+
+\label{sec:critica}
+
+O \texttt{Main.java} fornecido implementa corretamente o funcionamento do jogo,
+porém sua estrutur segue um modelo inteiramente procedural, apesar de ter sido
+desenvolvido em Java. Conceitos fundamentais da programação orientada a objetos,
+como encapsulamento, abstração, herança, polimorfismo e o uso de coleções,
+praticamente não são explorados. Em vez disso, toda a lógica da aplicação é
+concentrada em um único método, utilizando variáveis primitivas e vetores para
+representar as entidades do jogo. Em suma, pode ser comparado a um código de alguém que sabe o básico
+de Linguagem C e decidiu se aventurar no Java.
+
+Embora essa abordagem seja suficiente para um projeto pequeno, ela dificulta a
+organização do código, reduz seu potencial de reutilização e torna sua evolução
+mais trabalhosa.
+
+\subsection{Ausência de modelagem orientada a objetos}
+
+Toda a lógica do jogo está concentrada na classe \texttt{Main},
+principalmente dentro do método \texttt{main()}, auxiliado apenas por alguns
+métodos utilitários estáticos. Não existe uma modelagem que represente os
+conceitos do domínio do jogo, como jogador, inimigos, projéteis ou explosões,
+mesmo sendo entidades que possuem características e comportamentos próprios.
+
+Como consequência, o estado de cada entidade é representado por variáveis
+primitivas independentes, manipuladas diretamente ao longo do programa, como no
+caso do jogador:
+
+\begin{lstlisting}[caption={Estado do jogador: variáveis primitivas sem uma classe que represente a entidade (Main.java)}]
+int player_state = ACTIVE;
+double player_X = GameLib.WIDTH / 2;
+double player_Y = GameLib.HEIGHT * 0.90;
+double player_VX = 0.25;
+double player_VY = 0.25;
+double player_radius = 12.0;
+double player_explosion_start = 0;
+double player_explosion_end = 0;
+long player_nextShot = currentTime;
+\end{lstlisting}
+
+Essa representação impede que os dados e o comportamento relacionados ao
+jogador sejam reunidos em uma única estrutura. Como não há encapsulamento,
+qualquer trecho do \texttt{main()} pode acessar ou modificar diretamente
+variáveis como \texttt{player\_X}, \texttt{player\_Y} ou
+\texttt{player\_state}, sem qualquer mecanismo de controle ou validação.
+
+Além disso, concentrar toda a lógica da aplicação em um único método faz com
+que responsabilidades bastante diferentes, como processamento de entrada,
+movimentação, geração de entidades, detecção de colisões e desenho,
+permaneçam fortemente interligados. Essa organização dificulta a manutenção do
+código e aumenta o impacto de qualquer simples alteração realizada no sistema.
+
+\subsection{Representação das entidades por vetores paralelos}
+
+A ausência de objetos torna-se ainda mais evidente nas entidades que possuem
+múltiplas instâncias, como inimigos e projéteis. Em vez de cada inimigo ser
+representado por um objeto contendo seus próprios atributos, o programa utiliza
+diversos vetores paralelos, nos quais cada posição corresponde implicitamente à
+mesma entidade.
+
+O inimigo do tipo 1, por exemplo, é representado pelos seguintes vetores:
+
+\begin{lstlisting}[caption={Inimigo tipo 1 representado por vetores paralelos (Main.java)}]
+int    [] enemy1_states          = new int[10];
+double [] enemy1_X               = new double[10];
+double [] enemy1_Y               = new double[10];
+double [] enemy1_V               = new double[10];
+double [] enemy1_angle           = new double[10];
+double [] enemy1_RV              = new double[10];
+double [] enemy1_explosion_start = new double[10];
+double [] enemy1_explosion_end   = new double[10];
+long   [] enemy1_nextShoot       = new long[10];
+\end{lstlisting}
+
+O mesmo padrão é repetido para
+os demais tipos de inimigo. Dessa forma, atributos que pertencem
+conceitualmente ao mesmo objeto ficam espalhados em diferentes estruturas,
+dependendo do índice do vetor para manter sua associação.
+
+Essa escolha também impede o reaproveitamento de código entre entidades que
+compartilham características semelhantes. Conceitos comuns, como posição,
+velocidade, estado e remoção ao sair da tela, acabam sendo implementados
+repetidamente para cada conunto de vetores, em vez de serem centralizados em
+uma classe base.
+
+Outro efeito dessa representação é a necessidade de gerenciar manualmente as
+posições disponíveis dentro dos vetores. Sempre que uma nova entidade precisa
+ser criada, o programa realiza uma busca linear para localizar um índice livre,
+como mostrado a seguir:
+
+\begin{lstlisting}[caption={Busca manual por um índice livre no vetor (Main.java)}]
+public static int findFreeIndex(int [] stateArray){
+    int i;
+    for(i = 0; i < stateArray.length; i++){
+        if(stateArray[i] == INACTIVE) break;
+    }
+    return i;
+}
+\end{lstlisting}
+
+Na prática, esse método reproduz manualmente uma funcionalidade que já é
+oferecida pelas coleções da biblioteca padrão do Java. Usando estruturas como
+\texttt{List}, por exemplo, acabos por eliminar a necessidade de procurar
+posições livres e de manter índices sincronizados entre diversos vetores.
+
+Além disso, o uso de vetores de tamanho fixo impõe uma limitação artificial ao
+número de entidades existentes simultaneamente no jogo. Quando todos os índices
+estão ocupados, novas entidades simplesmente deixam de ser criadas.
+
+\subsection{Consequências da arquitetura adotada}
+
+A representação das entidades por meio de variáveis primitivas e vetores
+paralelos afeta diretamente toda a implementação do jogo. Como não existe uma
+abstração comum entre os diferentes tipos de entidades, operações semelhantes
+precisam ser reimplementadas para cada caso específico, resultando em grande
+quantidade de código duplicado (o que nunca é positivo).
+
+Esse problema aparece na detecção de colisões. O programa
+possui cinco laços distintos para verificar colisões entre diferentes pares de
+entidades, como jogador e projéteis inimigos, jogador e inimigos, ou projéteis
+do jogador contra inimigos. Embora trabalhem sobre vetores diferentes, todos
+executam exatamente a mesma sequência de operações (calcular a distância entre
+os objetos e compará-la com a soma de seus raios).
+
+\begin{lstlisting}[caption={Dois dos cinco laços de colisão presentes no código original (Main.java)}]
+for(int i = 0; i < e_projectile_states.length; i++){
+    double dx = e_projectile_X[i] - player_X;
+    double dy = e_projectile_Y[i] - player_Y;
+    double dist = Math.sqrt(dx * dx + dy * dy);
+    if(dist < (player_radius + e_projectile_radius) * 0.8){
+        player_state = EXPLODING;
+        player_explosion_start = currentTime;
+        player_explosion_end = currentTime + 2000;
+    }
+}
+
+for(int i = 0; i < enemy1_states.length; i++){
+    double dx = enemy1_X[i] - player_X;
+    double dy = enemy1_Y[i] - player_Y;
+    double dist = Math.sqrt(dx * dx + dy * dy);
+    if(dist < (player_radius + enemy1_radius) * 0.8){
+        player_state = EXPLODING;
+        player_explosion_start = currentTime;
+        player_explosion_end = currentTime + 2000;
+    }
+}
+\end{lstlisting}
+
+A única diferença entre esses trechos está na origem dos dados utilizados. A
+lógica da colisão permanece exatamente a mesma, sendo apenas adaptada para cada
+conjunto de vetores adequedo. Uma representação baseada em objetos permitiria aplicar o
+mesmo algoritmo de colisão a qualquer entidade que fornecesse informações como
+posição e raio, eliminando essa repetição.
+
+O mesmo padrão também aparece na atualização das entidades e no desenho da
+cena. A movimentação dos projéteis do jogador e dos projéteis inimigos, por
+exemplo, é praticamente idêntica, alterando apenas a direção em que deixam a
+tela e os vetores utilizados.
+
+\begin{lstlisting}[caption={Atualização dos projéteis do jogador e dos projéteis inimigos (Main.java)}]
+for(int i = 0; i < projectile_states.length; i++){
+    if(projectile_states[i] == ACTIVE){
+        if(projectile_Y[i] < 0) {
+            projectile_states[i] = INACTIVE;
+        } else {
+            projectile_X[i] += projectile_VX[i] * delta;
+            projectile_Y[i] += projectile_VY[i] * delta;
+        }
+    }
+}
+
+for(int i = 0; i < e_projectile_states.length; i++){
+    if(e_projectile_states[i] == ACTIVE){
+        if(e_projectile_Y[i] > GameLib.HEIGHT) {
+            e_projectile_states[i] = INACTIVE;
+        } else {
+            e_projectile_X[i] += e_projectile_VX[i] * delta;
+            e_projectile_Y[i] += e_projectile_VY[i] * delta;
+        }
+    }
+}
+\end{lstlisting}
+
+Situações semelhantes ocorrem em diversos outros pontos do programa, como no
+desenho das entidades e na atualização dos diferentes tipos de inimigo. Sempre
+que um novo tipo de objeto é introduzido, torna-se necessário escrever novos
+laços muito parecidos com os já existentes, alterando apenas nomes de vetores e
+algumas constantes.
+
+\subsection{Impacto na manutenção e evolução do sistema}
+
+Além dos problemas de organização, a estrutura do código limita a evolução do
+jogo. Como toda a lógica está concentrada em um único método e cada tipo de
+entidade possui sua própria implementação, qualquer funcionalidade nova exige
+alterações em diversos pontos diferentes do programa.
+
+Essa dificuldade torna-se ainda mais evidente no gerenciamento das entidades.
+Todos os vetores possuem tamanho fixo, definido manualmente durante sua criação.
+Quando não há mais posições disponíveis, novas entidades simplesmente deixam de
+ser criadas.
+
+\begin{lstlisting}[caption={Disparo descartado quando todos os índices do vetor estão ocupados (Main.java)}]
+int free = findFreeIndex(projectile_states);
+if(free < projectile_states.length){
+    projectile_X[free] = player_X;
+    projectile_Y[free] = player_Y - 2 * player_radius;
+    projectile_VX[free] = 0.0;
+    projectile_VY[free] = -1.0;
+    projectile_states[free] = ACTIVE;
+    player_nextShot = currentTime + 100;
+}
+// se free == projectile_states.length, o tiro simplesmente não acontece
+\end{lstlisting}
+
+Essa limitação obriga o programa a manter capacidades máximas definidas
+arbitrariamente e a controlar manualmente quais posições dos vetores estão
+livres ou ocupadas. Em aplicações maiores, esse tipo de gerenciamento aumenta a
+complexidade do código e dificulta a expansão do sistema.
+
+Por fim, praticamente todas as responsabilidades do jogo permanecem concentradas dentro
+do método \texttt{main()}. A ausência de uma divisão clara entre essas
+responsabilidades reduz a modularidade da aplicação e faz com que alterações em
+uma funcionalidade tenham maior probabilidade de impactar outras partes do
+sistema.
+
+
