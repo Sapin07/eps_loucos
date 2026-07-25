@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.LinkedList;
 
 import game.core.collision.CollisionManager;
-import game.core.entities.Enemy;
 import game.core.entities.Player;
 import game.core.entities.Projectile;
+import game.core.entities.enemies.Enemy;
 import game.core.entities.enemies.EnemyType1;
 import game.core.entities.enemies.EnemyType2;
 import lib.GameLib;

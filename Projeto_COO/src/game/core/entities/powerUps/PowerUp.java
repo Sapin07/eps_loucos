@@ -1,4 +1,7 @@
-package game.core.entities;
+package game.core.entities.powerUps;
+
+import game.core.entities.Entity;
+import game.core.entities.Player;
 
 public abstract class PowerUp extends Entity {
     protected PowerUp(double x, double y, double width, double height, double fallSpeed) {

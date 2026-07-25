@@ -1,6 +1,8 @@
-package game.core.entities;
+package game.core.entities.enemies;
 
 import java.awt.Color;
+
+import game.core.entities.Player;
 
 // Boss is just a special type of enemy that spawns at (x, y), moves toward
 // (arenaX, arenaY) to enter the arena, and once there, fights using its

@@ -1,7 +1,10 @@
-package game.core.entities;
+package game.core.entities.enemies;
 
 import java.awt.Color;
 
+import game.core.entities.OwnerType;
+import game.core.entities.Projectile;
+import game.core.entities.Ship;
 import lib.GameLib;
 
 public abstract class Enemy extends Ship {

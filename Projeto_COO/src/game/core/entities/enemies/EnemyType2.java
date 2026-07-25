@@ -2,7 +2,6 @@ package game.core.entities.enemies;
 
 import java.awt.Color;
 
-import game.core.entities.Enemy;
 import game.core.entities.OwnerType;
 import game.core.entities.Projectile;
 import lib.GameLib;

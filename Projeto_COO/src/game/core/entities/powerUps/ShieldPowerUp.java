@@ -1,7 +1,8 @@
-package game.core.entities;
+package game.core.entities.powerUps;
 
 import java.awt.Color;
 
+import game.core.entities.Player;
 import lib.GameLib;
 
 /**
