@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import game.core.collision.CollisionManager;
 import game.entities.Player;
 import game.entities.Enemy;
+import game.entities.enemies.EnemyType1;
+import game.entities.enemies.EnemyType2;
 import game.entities.Projectile;
 
 import lib.GameLib;
@@ -40,8 +42,8 @@ public class Game {
         player = new Player(GameLib.WIDTH/ 2.0, GameLib.HEIGHT - 60, 3); // just a example, a config file is better
 
         // hard coded for now, we need a Spawn manager
-        enemies.add(new Enemy(100, -20, 3, 80));
-        enemies.add(new Enemy(380, -80, 3, 80));
+        enemies.add(new EnemyType1(100, -20));
+        enemies.add(new EnemyType2(380, -80));
 
         state = GameState.PLAYING;
         lastFrameTime = System.currentTimeMillis();
@@ -68,7 +70,8 @@ public class Game {
 
         for (Enemy e : enemies){
             e.update(delta);
-            spawnIfPresent(e.tryShoot());
+            Projectile p = e.tryShoot(System.currentTimeMillis(), player.getX(), player.getY());
+            spawnIfPresent(p);
         }
 
         for (Projectile p : projectiles){

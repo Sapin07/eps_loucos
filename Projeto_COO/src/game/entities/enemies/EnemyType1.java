@@ -1,6 +1,10 @@
-package game.entities;
+package game.entities.enemies;
 
 import java.awt.Color;
+
+import game.entities.Enemy;
+import game.entities.OwnerType;
+import game.entities.Projectile;
 import lib.GameLib;
 
 // Green Circle that spaws (x,y) shoots up-down (and moves the same direction)
@@ -34,6 +38,7 @@ public class EnemyType1 extends Enemy {
             return null;
         }
 
+        resetShotTimer();
         return new Projectile(x, y + SIZE / 2, 0, PROJECTILE_SPEED, OwnerType.ENEMY, SHOOT_DAMAGE, Color.RED);
     }
 }

@@ -1,12 +1,12 @@
 package game.entities;
 
 import java.awt.Color;
+import java.util.LinkedList;
 import java.util.List;
 import lib.GameLib;
 
 public class Player extends Ship {
     // todo:
-    // maybe on try shoot just add on entitys list
     //
     // to adjust, maybe to read from env file
     private static final double SIZE = 10;
@@ -62,20 +62,23 @@ public class Player extends Ship {
 
     public List<Projectile> tryShoot(){
         if (!GameLib.iskeyPressed(GameLib.KEY_CONTROL) || timeSinceLastShot < SHOT_INTERVAL_MS) {
-            return List.of();
+            return null;
         }
 
         timeSinceLastShot = 0;
+        List<Projectile> playerShoots = new LinkedList<>();
+        playerShoots.add(new Projectile(x, y - height / 2, 0, SHOT_SPEED, OwnerType.PLAYER, SHOT_DAMAGE, Color.CYAN));
 
         if (hasTripleShot()) {
-            return List.of(
-                new Projectile(x - TRIPLE_SHOT_DISTX, y - height / 2, 0, SHOT_SPEED, OwnerType.PLAYER, SHOT_DAMAGE, Color.CYAN),
-                new Projectile(x, y - height / 2, 0, SHOT_SPEED, OwnerType.PLAYER, SHOT_DAMAGE, Color.CYAN),
-                new Projectile(x + TRIPLE_SHOT_DISTX, y - height / 2, 0, SHOT_SPEED, OwnerType.PLAYER, SHOT_DAMAGE, Color.CYAN)
+            playerShoots.add(
+                new Projectile(x - TRIPLE_SHOT_DISTX, y - height / 2, 0, SHOT_SPEED, OwnerType.PLAYER, SHOT_DAMAGE, Color.CYAN)
             );
+            playerShoots.add(
+                new Projectile(x + TRIPLE_SHOT_DISTX, y - height / 2, 0, SHOT_SPEED, OwnerType.PLAYER, SHOT_DAMAGE, Color.CYAN)
+            );  
         }
 
-        return List.of(new Projectile(x, y - height / 2, 0, SHOT_SPEED, OwnerType.PLAYER, SHOT_DAMAGE, Color.CYAN));
+        return playerShoots;
     }
 
     public void activateShield(long durationMs) {

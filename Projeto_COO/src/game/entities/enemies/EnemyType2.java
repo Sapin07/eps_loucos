@@ -1,6 +1,10 @@
-package game.entities;
+package game.entities.enemies;
 
 import java.awt.Color;
+
+import game.entities.Enemy;
+import game.entities.OwnerType;
+import game.entities.Projectile;
 import lib.GameLib;
 
 // Red Circle (Pink shoot) that shoots in the player's direction until dies or get out of the Screen, what comes first
@@ -22,7 +26,6 @@ public class EnemyType2 extends Enemy {
     private static final double SHOOT_INTERVAL_MS = 600;
 
     private static final int SHOOT_DAMAGE = 1;
-    private static final int CONTACT_DAMAGE = 2;
 
     public EnemyType2(double x, double y) {
         super(x, y, SIZE, SIZE, MAX_HEALTH, Color.RED, SHOOT_INTERVAL_MS);
@@ -48,6 +51,7 @@ public class EnemyType2 extends Enemy {
         double vx = (dx/distance) * PROJECTILE_SPEED;
         double vy = (dy/distance) * PROJECTILE_SPEED;
 
+        resetShotTimer();
         return new Projectile(x, y + SIZE / 2, vx, vy, OwnerType.ENEMY, SHOOT_DAMAGE, Color.PINK);
     }
 }

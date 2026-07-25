@@ -1,6 +1,10 @@
-package game.entities;
+package game.entities.enemies;
 
 import java.awt.Color;
+
+import game.entities.Boss;
+import game.entities.OwnerType;
+import game.entities.Projectile;
 import lib.GameLib;
 
 // THE STALKER
@@ -53,6 +57,7 @@ public class BossType2 extends Boss {
         double vx = (dx / distance) * PROJECTILE_SPEED;
         double vy = (dy / distance) * PROJECTILE_SPEED;
 
+        resetShotTimer();
         return new Projectile(x, y + height / 2, vx, vy, OwnerType.ENEMY, SHOOT_DAMAGE, Color.ORANGE);
     }
 
