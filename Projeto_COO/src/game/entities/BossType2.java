@@ -12,7 +12,6 @@ public class BossType2 extends Boss {
     private static final Color COLOR = Color.ORANGE;
     private static final double SHOOT_INTERVAL_MS = 500;
     private static final int SHOOT_DAMAGE = 1;
-    private static final int CONTACT_DAMAGE = 2;
 
     private static final double PROJECTILE_SPEED = 500;
     private static final double ENTRY_SPEED = 180;
@@ -20,7 +19,7 @@ public class BossType2 extends Boss {
     private static final double CHASE_SPEED = 140;
 
     public BossType2(double arenaX, double arenaY, int maxHealth) {
-        super(arenaX, -SIZE, SIZE, SIZE, maxHealth, COLOR, SHOOT_INTERVAL_MS, arenaX, arenaY, ENTRY_SPEED, CONTACT_DAMAGE);
+        super(arenaX, -SIZE, SIZE, SIZE, maxHealth, COLOR, SHOOT_INTERVAL_MS, arenaX, arenaY, ENTRY_SPEED);
     }
 
     @Override

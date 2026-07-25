@@ -15,7 +15,6 @@ public class BossType1 extends Boss {
 
     private static final double SHOOT_INTERVAL_MS = 900;
     private static final int SHOOT_DAMAGE = 2;
-    private static final int CONTACT_DAMAGE = 2;
     private static final double PROJECTILE_SPEED = 350;
 
     private static final double ENTRY_SPEED = 150;
@@ -27,7 +26,7 @@ public class BossType1 extends Boss {
 
     public BossType1(double arenaX, double arenaY, int maxHealth) {
         // he starts off the screen and goes down vertical(we can change that)
-        super(arenaX, -SIZE, SIZE, SIZE, maxHealth, COLOR, SHOOT_INTERVAL_MS, arenaX, arenaY, ENTRY_SPEED, CONTACT_DAMAGE);
+        super(arenaX, -SIZE, SIZE, SIZE, maxHealth, COLOR, SHOOT_INTERVAL_MS, arenaX, arenaY, ENTRY_SPEED);
     }
 
     @Override

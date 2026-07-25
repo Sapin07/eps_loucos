@@ -25,7 +25,7 @@ public class EnemyType2 extends Enemy {
     private static final int CONTACT_DAMAGE = 2;
 
     public EnemyType2(double x, double y) {
-        super(x, y, SIZE, SIZE, MAX_HEALTH, Color.RED, SHOOT_INTERVAL_MS, CONTACT_DAMAGE);
+        super(x, y, SIZE, SIZE, MAX_HEALTH, Color.RED, SHOOT_INTERVAL_MS);
         setVelocity(0, FALL_SPEED);
     }
 

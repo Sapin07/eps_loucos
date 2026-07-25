@@ -14,8 +14,8 @@ public abstract class Boss extends Enemy {
 
     private Player target;
 
-    protected Boss(double x, double y, double width, double height, int maxHealth, Color color, double shootIntervalMs, double arenaX, double arenaY, double entrySpeed, int contactDamage) {
-        super(x, y, width, height, maxHealth, color, shootIntervalMs, contactDamage);
+    protected Boss(double x, double y, double width, double height, int maxHealth, Color color, double shootIntervalMs, double arenaX, double arenaY, double entrySpeed) {
+        super(x, y, width, height, maxHealth, color, shootIntervalMs);
         this.arenaX = arenaX;
         this.arenaY = arenaY;
 
@@ -90,11 +90,6 @@ public abstract class Boss extends Enemy {
     @Override
     protected boolean isOutOfBounds() {
         // A boss can't go out o f the bounds ;D
-        return false;
-    }
-
-    @Override
-    public boolean isDestroyedOnContact() {
         return false;
     }
 }
