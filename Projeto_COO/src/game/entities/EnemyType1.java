@@ -14,10 +14,12 @@ public class EnemyType1 extends Enemy {
     private static final double FALL_SPEED = 100;
     private static final double PROJECTILE_SPEED = 1000;
     private static final double SHOOT_INTERVAL_MS = 500;
+
     private static final int SHOOT_DAMAGE = 1;
+    private static final int CONTACT_DAMAGE = 2;
 
     public EnemyType1(double x, double y) {
-        super(x, y, SIZE, SIZE, MAX_HEALTH, Color.GREEN, SHOOT_INTERVAL_MS);
+        super(x, y, SIZE, SIZE, MAX_HEALTH, Color.GREEN, SHOOT_INTERVAL_MS, CONTACT_DAMAGE);
         setVelocity(0, FALL_SPEED);
     }
 

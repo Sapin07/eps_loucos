@@ -3,6 +3,8 @@ package game.entities;
 import java.awt.Color;
 import lib.GameLib;
 
+// THE PATROLLER (NEM SEI SE ESSA PALAVRA EXISTE)
+
 // BossType1 is a boss that patrols side to side within its arena, bouncing
 // between a fixed left/right range, and fires straight down at a fixed
 // interval, ignoring the player's position entirely.
@@ -13,8 +15,9 @@ public class BossType1 extends Boss {
 
     private static final double SHOOT_INTERVAL_MS = 900;
     private static final int SHOOT_DAMAGE = 2;
+    private static final int CONTACT_DAMAGE = 2;
     private static final double PROJECTILE_SPEED = 350;
-    
+
     private static final double ENTRY_SPEED = 150;
 
     private static final double PATROL_HALF_RANGE = 150;
@@ -24,7 +27,7 @@ public class BossType1 extends Boss {
 
     public BossType1(double arenaX, double arenaY, int maxHealth) {
         // he starts off the screen and goes down vertical(we can change that)
-        super(arenaX, -SIZE, SIZE, SIZE, maxHealth, COLOR, SHOOT_INTERVAL_MS, arenaX, arenaY, ENTRY_SPEED);
+        super(arenaX, -SIZE, SIZE, SIZE, maxHealth, COLOR, SHOOT_INTERVAL_MS, arenaX, arenaY, ENTRY_SPEED, CONTACT_DAMAGE);
     }
 
     @Override

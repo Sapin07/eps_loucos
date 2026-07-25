@@ -3,11 +3,22 @@ import java.awt.Color;
 
 public abstract class Enemy extends Ship {
     private final double SHOOT_INTERVAL_MS;
+    private final int contactDamage;
     private long timeSinceLastShot = 0;
 
-    protected Enemy(double x, double y, double width, double height, int maxHealth, Color color, double shootIntervalMS) {
+    protected Enemy(double x, double y, double width, double height, int maxHealth, Color color, double shootIntervalMS, int contactDamage) {
         super(x, y, width, height, maxHealth, color);
         this.SHOOT_INTERVAL_MS = shootIntervalMS;
+        this.contactDamage = contactDamage;
+    }
+
+    public final int getContactDamage() {
+        return contactDamage;
+    }
+
+    // se true, o inimigo morre ao encostar no Player. Para chefes é false.
+    public boolean isDestroyedOnContact() {
+        return true;
     }
 
     @Override
@@ -16,7 +27,8 @@ public abstract class Enemy extends Ship {
         timeSinceLastShot += delta;
     }
 
-    protected final boolean readyToShoot() {
+    // no 'final' because boss can override this method (dont shot when entering)
+    protected boolean readyToShoot() {
         if (timeSinceLastShot < SHOOT_INTERVAL_MS) {
             return false;
         }

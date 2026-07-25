@@ -14,8 +14,8 @@ public abstract class Boss extends Enemy {
 
     private Player target;
 
-    protected Boss(double x, double y, double width, double height, int maxHealth, Color color, double shootIntervalMs, double arenaX, double arenaY, double entrySpeed) {
-        super(x, y, width, height, maxHealth, color, shootIntervalMs);
+    protected Boss(double x, double y, double width, double height, int maxHealth, Color color, double shootIntervalMs, double arenaX, double arenaY, double entrySpeed, int contactDamage) {
+        super(x, y, width, height, maxHealth, color, shootIntervalMs, contactDamage);
         this.arenaX = arenaX;
         this.arenaY = arenaY;
 
@@ -23,7 +23,12 @@ public abstract class Boss extends Enemy {
         double dy = arenaY - y;
 
         double distance = Math.sqrt(dx*dx + dy*dy);
-        setVelocity((dx/distance) * entrySpeed, (dy/distance) * entrySpeed);
+        if (distance > 0) {
+            setVelocity((dx/distance) * entrySpeed, (dy/distance) * entrySpeed);
+        } else {
+            setVelocity(0, 0);
+            entering = false;
+        }
     }
 
     public void setTarget(Player target) {
@@ -71,12 +76,25 @@ public abstract class Boss extends Enemy {
         }
     }
 
+    @Override
+    protected boolean readyToShoot() {
+        if (entering) {
+            return false;
+        }
+        return super.readyToShoot();
+    }
+
     // Each boss is responsible for defining its own movement pattern within the screen.
     protected abstract void updateArenaMovement(long delta);
 
     @Override
     protected boolean isOutOfBounds() {
         // A boss can't go out o f the bounds ;D
+        return false;
+    }
+
+    @Override
+    public boolean isDestroyedOnContact() {
         return false;
     }
 }

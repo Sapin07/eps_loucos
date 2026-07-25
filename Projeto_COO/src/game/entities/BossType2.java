@@ -3,21 +3,24 @@ package game.entities;
 import java.awt.Color;
 import lib.GameLib;
 
+// THE STALKER
+
 // BossType2 is a boss that chases the player's x position within its arena,
-// staying at a fixed y, and fires aimed shots toward the player at a faster
-// interval than BossType1.
+// staying at a fixed y, and fires aimed shots toward the player. That's all.
 public class BossType2 extends Boss {
     private static final double SIZE = 54;
     private static final Color COLOR = Color.ORANGE;
     private static final double SHOOT_INTERVAL_MS = 500;
     private static final int SHOOT_DAMAGE = 1;
+    private static final int CONTACT_DAMAGE = 2;
+
     private static final double PROJECTILE_SPEED = 500;
     private static final double ENTRY_SPEED = 180;
 
     private static final double CHASE_SPEED = 140;
 
     public BossType2(double arenaX, double arenaY, int maxHealth) {
-        super(arenaX, -SIZE, SIZE, SIZE, maxHealth, COLOR, SHOOT_INTERVAL_MS, arenaX, arenaY, ENTRY_SPEED);
+        super(arenaX, -SIZE, SIZE, SIZE, maxHealth, COLOR, SHOOT_INTERVAL_MS, arenaX, arenaY, ENTRY_SPEED, CONTACT_DAMAGE);
     }
 
     @Override
