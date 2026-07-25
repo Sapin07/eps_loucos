@@ -1,4 +1,4 @@
-package game.entities;
+package game.core.entities;
 
 public enum OwnerType {
     // owner types for projectiles

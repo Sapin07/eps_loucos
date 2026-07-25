@@ -1,10 +1,10 @@
-package game.entities.enemies;
+package game.core.entities.enemies;
 
 import java.awt.Color;
 
-import game.entities.Enemy;
-import game.entities.OwnerType;
-import game.entities.Projectile;
+import game.core.entities.Enemy;
+import game.core.entities.OwnerType;
+import game.core.entities.Projectile;
 import lib.GameLib;
 
 // Green Circle that spaws (x,y) shoots up-down (and moves the same direction)

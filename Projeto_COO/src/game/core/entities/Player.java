@@ -1,4 +1,4 @@
-package game.entities;
+package game.core.entities;
 
 import java.awt.Color;
 import java.util.LinkedList;

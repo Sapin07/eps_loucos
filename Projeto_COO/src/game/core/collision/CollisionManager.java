@@ -2,10 +2,10 @@ package game.core.collision;
 
 import java.util.List;
 
-import game.entities.Enemy;
-import game.entities.OwnerType;
-import game.entities.Player;
-import game.entities.Projectile;
+import game.core.entities.Enemy;
+import game.core.entities.OwnerType;
+import game.core.entities.Player;
+import game.core.entities.Projectile;
 
 public class CollisionManager {
     // the projectiles list are updated in human notice time, while the collisions are checked every frame. 

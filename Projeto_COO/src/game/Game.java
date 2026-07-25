@@ -4,12 +4,11 @@ import java.util.List;
 import java.util.LinkedList;
 
 import game.core.collision.CollisionManager;
-import game.entities.Player;
-import game.entities.Enemy;
-import game.entities.enemies.EnemyType1;
-import game.entities.enemies.EnemyType2;
-import game.entities.Projectile;
-
+import game.core.entities.Enemy;
+import game.core.entities.Player;
+import game.core.entities.Projectile;
+import game.core.entities.enemies.EnemyType1;
+import game.core.entities.enemies.EnemyType2;
 import lib.GameLib;
 
 public class Game {

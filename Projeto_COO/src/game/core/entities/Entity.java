@@ -1,4 +1,4 @@
-package game.entities;
+package game.core.entities;
 
 import game.core.collision.Collidable;
 
