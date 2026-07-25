@@ -3,6 +3,7 @@ import java.awt.Color;
 
 public abstract class Enemy extends Ship {
     private final double SHOOT_INTERVAL_MS;
+    private final int CONTACT_DAMAGE = 1;
     private long timeSinceLastShot = 0;
 
     protected Enemy(double x, double y, double width, double height, int maxHealth, Color color, double shootIntervalMS) {
@@ -23,6 +24,10 @@ public abstract class Enemy extends Ship {
         }
         timeSinceLastShot = 0;
         return true;
+    }
+
+    public int getContactDamage() {
+        return CONTACT_DAMAGE;
     }
 
     // Each enemy decides how to shoot
