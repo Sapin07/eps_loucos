@@ -17,6 +17,8 @@ import game.core.entities.enemies.Boss;
 import game.core.entities.enemies.Enemy;
 import game.core.entities.powerUps.PowerUp;
 import game.core.spawn.SpawnManager;
+import game.ui.StarField;
+import game.ui.HUD;
 import lib.GameLib;
 
 public class Game {
@@ -42,6 +44,9 @@ public class Game {
     private int currentPhaseIndex;
     private Phase currentPhase;
     private long phaseElapsedMs;
+
+    private final StarField starField = new StarField();
+    private final HUD hud = new HUD();
 
     public Game(GameConfig config) {
         this.config = config;
@@ -106,6 +111,7 @@ public class Game {
     }
 
     private void update(long delta) {
+        starField.update(delta);
         // other good point fot multi threaded approach
         phaseElapsedMs += delta;
 
@@ -200,6 +206,7 @@ public class Game {
 
     private void render() {
         // multi threaded is good
+        starField.draw();
         player.draw();
 
         for(Enemy e : enemies){
@@ -214,6 +221,8 @@ public class Game {
             p.draw();
         }
 
+        hud.draw(currentPhase.getBossEntity());
+        
         GameLib.display();
     }
 

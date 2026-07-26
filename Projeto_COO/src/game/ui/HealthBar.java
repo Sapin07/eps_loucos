@@ -14,8 +14,8 @@ public class HealthBar {
     private final double height;
 
     private final Color foreground;
-    private final Color background = Color.DARK_GRAY;
-    private final Color border = Color.WHITE; 
+    private final Color background;
+    private final Color border; 
 
     public HealthBar(double x, double y, double width, double height, Color foreground, Color background, Color border) {
         this.x = x;
@@ -23,6 +23,8 @@ public class HealthBar {
         this.width = width;
         this.height = height;
         this.foreground = foreground;
+        this.background = background;
+        this.border = border;
     }
 
     public void draw(int currentHealth, int maxHealth) {
