@@ -5,7 +5,6 @@ import java.util.List;
 import game.core.entities.OwnerType;
 import game.core.entities.Player;
 import game.core.entities.Projectile;
-import game.core.entities.enemies.Boss;
 import game.core.entities.enemies.Enemy;
 import game.core.entities.powerUps.PowerUp;
 
@@ -66,7 +65,7 @@ public class CollisionManager {
         for(Enemy e : enemies){
             if (e.isActive() && e.hasCollidedWith(player)) {
                 player.takeDamage(e.getContactDamage());
-                if(!(e instanceof Boss))
+                if (e.diesOnPlayerContact())
                     e.takeDamage(e.getHealth()); // explodes the enemy
                 break;
             }

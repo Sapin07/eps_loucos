@@ -1,28 +1,14 @@
 package game.config.spawn;
 
-public class EntitySpec {
-    private final SpawnKind kind;
-    private final int type;
+public abstract class EntitySpec {
     private final long whenMs;
     private final double x;
     private final double y;
-    private final int lifePoints;
 
-    public EntitySpec(SpawnKind kind, int type, long whenMs, double x, double y, int lifePoints){
-        this.kind = kind;
-        this.type = type;
+    protected EntitySpec(long whenMs, double x, double y){
         this.whenMs = whenMs;
         this.x = x;
         this.y = y;
-        this.lifePoints = lifePoints;
-    }
-
-    public SpawnKind getKind(){
-        return kind;
-    }
-
-    public int getType(){
-        return type;
     }
 
     public long getWhenMs(){
@@ -36,15 +22,4 @@ public class EntitySpec {
     public double getY(){
         return y;
     }
-
-    public int getLifePoints(){
-        return lifePoints;
-    }
-
-    @Override
-    public String toString() {
-        return kind + " tipo=" + type + " quando=" + whenMs + "ms pos=(" + x + "," + y + ")"
-            + (kind == SpawnKind.BOSS ? " vida=" + lifePoints : "");
-    }
-
 }

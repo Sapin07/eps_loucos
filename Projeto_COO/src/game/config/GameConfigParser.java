@@ -35,7 +35,7 @@ public class GameConfigParser {
 
     private int parseIntline(String line, String description){
         if (line == null)
-            throw new IllegalStateException("Arquivo de configurção incompleto: faltando " + description + ".");
+            throw new IllegalStateException("Arquivo de configuração incompleto: faltando " + description + ".");
 
         try {
             return Integer.parseInt(line.trim());
