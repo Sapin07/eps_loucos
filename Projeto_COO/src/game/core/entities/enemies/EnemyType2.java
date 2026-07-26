@@ -33,6 +33,8 @@ public class EnemyType2 extends Enemy {
 
     @Override
     public void draw() {
+        if (drawExplosion()) return;
+        
         GameLib.setColor(Color.RED);
         GameLib.drawCircle(x, y, SIZE/2);
     }

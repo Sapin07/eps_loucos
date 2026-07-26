@@ -30,6 +30,8 @@ public class Player extends Ship {
 
     @Override
     public void update(long delta) {
+        if (updateExploding(delta)) return;
+        
         readInput(delta);
         clampToScreen();
         timeSinceLastShot += delta;
@@ -113,6 +115,8 @@ public class Player extends Ship {
 
     @Override 
     public void draw(){
+        if (drawExplosion()) return;
+
         GameLib.setColor(isShielded() ? Color.CYAN : color);
         GameLib.drawPlayer(x, y, SIZE);
     }

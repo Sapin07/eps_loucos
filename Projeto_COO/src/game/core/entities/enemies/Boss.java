@@ -56,6 +56,8 @@ public abstract class Boss extends Enemy {
 
     @Override
     public void update(long delta) {
+        if (updateExploding(delta)) return;
+
         if (entering) {
             updateEntrance(delta);
         } else {

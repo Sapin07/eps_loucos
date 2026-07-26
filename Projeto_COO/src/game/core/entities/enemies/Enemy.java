@@ -25,12 +25,16 @@ public abstract class Enemy extends Ship {
 
     @Override
     public void update(long delta) {
+        if (updateExploding(delta)) return;
+
         super.update(delta);
         timeSinceLastShot += delta;
     }
 
     protected boolean readyToShoot() {
         // decided to maintain it for the possible behavior component this can be useful
+        if (isExploding()) return false;
+
         return timeSinceLastShot >= shootIntervalMs;
     }
 
@@ -46,12 +50,6 @@ public abstract class Enemy extends Ship {
 
     public int getContactDamage() {
         return contactDamage;
-    }
-
-    @Override
-    public void draw() {
-        GameLib.setColor(color);
-        GameLib.drawDiamond(x, y, Math.max(width, height) / 2.0);
     }
 
     // Enemies must implement their shooting behaviour

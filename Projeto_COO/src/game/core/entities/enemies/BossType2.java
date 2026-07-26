@@ -62,6 +62,8 @@ public class BossType2 extends Boss {
 
     @Override
     public void draw() {
+        if (drawExplosion()) return;
+        
         GameLib.setColor(COLOR);
         GameLib.drawDiamond(x, y, SIZE / 2);
         GameLib.setColor(Color.RED);
