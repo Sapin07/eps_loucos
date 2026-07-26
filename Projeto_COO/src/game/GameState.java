@@ -5,5 +5,6 @@ public enum GameState {
     PLAYING,
     PHASE_TRANSITION,
     GAME_OVER,
-    VICTORY
+    VICTORY,
+    QUIT
 }

@@ -1,5 +1,6 @@
 package game;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -9,25 +10,31 @@ import java.util.logging.Logger;
 import game.config.GameConfig;
 import game.config.phase.Phase;
 import game.config.phase.PhaseConfigParser;
+import game.config.spawn.BossSpawnEntry;
+import game.config.spawn.EnemySpawnEntry;
 import game.config.spawn.EntitySpec;
+import game.config.spawn.PowerUpSpawnEntry;
+import game.config.spawn.SpawnManager;
 import game.core.collision.CollisionManager;
 import game.core.entities.Player;
 import game.core.entities.Projectile;
 import game.core.entities.enemies.Boss;
 import game.core.entities.enemies.Enemy;
 import game.core.entities.powerUps.PowerUp;
-import game.core.spawn.SpawnManager;
-import game.ui.StarField;
 import game.ui.HUD;
+import game.ui.StarField;
+import game.ui.TextRenderer;
 import lib.GameLib;
 
 public class Game {
     // todo:
     // - should we use multi threads?
-    // - fix boss
-    // - hud
 
     private static final Logger LOGGER = Logger.getLogger(Game.class.getName());
+
+    private static final long PHASE_TRANSITION_DELAY_MS = 2000;
+    private static final long END_SCREEN_INPUT_DEBOUNCE_MS = 500;
+    private static final long END_SCREEN_POLL_INTERVAL_MS = 16;
 
     private final GameConfig config;
     private final SpawnManager spawnManager;
@@ -42,11 +49,13 @@ public class Game {
     private final List<PowerUp> powerUps;
 
     private int currentPhaseIndex;
+    private int completedPhaseIndex;
     private Phase currentPhase;
     private long phaseElapsedMs;
+    private long phaseTransitionElapsedMs;
 
     private final StarField starField = new StarField();
-    private final HUD hud = new HUD();
+    private final HUD hud;
 
     public Game(GameConfig config) {
         this.config = config;
@@ -56,34 +65,25 @@ public class Game {
         this.enemies = new LinkedList<>();
         this.projectiles = new LinkedList<>();
         this.powerUps = new LinkedList<>();
+        this.hud = new HUD(config.getPlayerHealth());
     }
 
     public void run(){
         try {
             GameLib.initGraphics_SAFE_MODE();
 
-            player = new Player(GameLib.WIDTH / 2.0, GameLib.HEIGHT - 60, config.getPlayerHealth());
-            currentPhaseIndex = 0;
-            loadPhase(currentPhaseIndex);
+            boolean playAgain = true;
 
-            state = GameState.PLAYING;
-            lastFrameTime = System.currentTimeMillis();
-            LOGGER.info(() -> "Game started: " + config.getPhaseFileNames().size() + " phase(s), player health=" + config.getPlayerHealth());
+            while (playAgain) {
+                startNewRound();
+                playRound();
 
-            // we can use a thread observer? check it
-            while (state == GameState.PLAYING || state == GameState.PHASE_TRANSITION) {
-                long now = System.currentTimeMillis();
-                long delta = now - lastFrameTime;
-                lastFrameTime = now;
-
-                if (GameLib.iskeyPressed(GameLib.KEY_ESCAPE) || !player.isActive()) {
-                    LOGGER.info("Player defeated or quit, ending game.");
-                    state = GameState.GAME_OVER;
+                if (state == GameState.QUIT) {
                     break;
                 }
 
-                update(delta);
-                render();
+                announceOutcome();
+                playAgain = showEndScreenAndWaitForChoice();
             }
         } catch (Exception e) {
             // last resort
@@ -91,10 +91,46 @@ public class Game {
             // would crash the thread after initGraphics() already opened the window, leaving a frozen (inside like the music, wake me up, wake me up inside),
             //  never-drawn screen with no visible clue why
             LOGGER.log(Level.SEVERE, "Fatal error, aborting game.", e);
-            state = GameState.GAME_OVER;
         }
+    }
 
-        announceOutcome();
+    private void startNewRound() {
+        player = new Player(GameLib.WIDTH / 2.0, GameLib.HEIGHT - 60, config.getPlayerHealth());
+        enemies.clear();
+        projectiles.clear();
+        powerUps.clear();
+
+        currentPhaseIndex = 0;
+        completedPhaseIndex = -1;
+        loadPhase(currentPhaseIndex);
+
+        state = GameState.PLAYING;
+        lastFrameTime = System.currentTimeMillis();
+        LOGGER.info(() -> "Round started: " + config.getPhaseFileNames().size() + " phase(s), player health=" + config.getPlayerHealth());
+    }
+
+    private void playRound() {
+        // we can use a thread observer? check it
+        while (state == GameState.PLAYING || state == GameState.PHASE_TRANSITION) {
+            long now = System.currentTimeMillis();
+            long delta = now - lastFrameTime;
+            lastFrameTime = now;
+
+            if (GameLib.iskeyPressed(GameLib.KEY_ESCAPE)) {
+                LOGGER.info("Player quit.");
+                state = GameState.QUIT;
+                return;
+            }
+
+            if (!player.isActive()) {
+                LOGGER.info("Player defeated.");
+                state = GameState.GAME_OVER;
+                return;
+            }
+
+            update(delta);
+            render();
+        }
     }
 
     private void loadPhase(int index) {
@@ -102,7 +138,7 @@ public class Game {
         LOGGER.info(() -> "Loading phase " + (index + 1) + "/" + config.getPhaseFileNames().size() + " from \"" + phaseFile + "\"");
 
         try {
-            currentPhase = new PhaseConfigParser().parser(phaseFile);
+            currentPhase = new PhaseConfigParser().parse(phaseFile);
         } catch (IOException e) {
             throw new IllegalStateException("Não foi possível carregar a fase \"" + phaseFile + "\".", e);
         }
@@ -111,6 +147,16 @@ public class Game {
     }
 
     private void update(long delta) {
+        if (state == GameState.PHASE_TRANSITION) {
+            phaseTransitionElapsedMs += delta;
+
+            if (phaseTransitionElapsedMs >= PHASE_TRANSITION_DELAY_MS) {
+                proceedToNextPhaseOrVictory();
+            }
+
+            return;
+        }
+
         starField.update(delta);
         // other good point fot multi threaded approach
         phaseElapsedMs += delta;
@@ -142,8 +188,24 @@ public class Game {
 
         if (currentPhase.isComplete()) {
             LOGGER.info(() -> "Phase " + (currentPhaseIndex + 1) + " boss defeated.");
-            advancePhase();
+            completedPhaseIndex = currentPhaseIndex;
+            phaseTransitionElapsedMs = 0;
+            state = GameState.PHASE_TRANSITION;
         }
+    }
+
+    private void proceedToNextPhaseOrVictory() {
+        int nextIndex = currentPhaseIndex + 1;
+
+        if (nextIndex >= config.getPhaseFileNames().size()) {
+            LOGGER.info("All phases cleared, victory!");
+            state = GameState.VICTORY;
+            return;
+        }
+
+        currentPhaseIndex = nextIndex;
+        loadPhase(currentPhaseIndex);
+        state = GameState.PLAYING;
     }
 
     private void spawnDueEntities() {
@@ -160,38 +222,21 @@ public class Game {
     }
 
     private void spawnEntity(EntitySpec spec) {
-        switch (spec.getKind()) {
-            case ENEMY:
-                enemies.add(spawnManager.createEnemy(spec));
-                LOGGER.fine(() -> "Spawned enemy: " + spec);
-                break;
-            case BOSS:
-                Boss boss = spawnManager.createBoss(spec);
-                boss.setTarget(player);
-                currentPhase.setBossEntity(boss);
-                enemies.add(boss);
-                LOGGER.info(() -> "Spawned boss: " + spec);
-                break;
-            case POWERUP:
-                powerUps.add(spawnManager.createPowerUp(spec));
-                LOGGER.fine(() -> "Spawned power-up: " + spec);
-                break;
+        if (spec instanceof EnemySpawnEntry enemySpec) {
+            enemies.add(spawnManager.createEnemy(enemySpec));
+            LOGGER.fine(() -> "Spawned enemy: " + spec);
+        } else if (spec instanceof BossSpawnEntry bossSpec) {
+            Boss boss = spawnManager.createBoss(bossSpec);
+            boss.setTarget(player);
+            currentPhase.setBossEntity(boss);
+            enemies.add(boss);
+            LOGGER.info(() -> "Spawned boss: " + spec);
+        } else if (spec instanceof PowerUpSpawnEntry powerUpSpec) {
+            powerUps.add(spawnManager.createPowerUp(powerUpSpec));
+            LOGGER.fine(() -> "Spawned power-up: " + spec);
+        } else {
+            throw new IllegalArgumentException("Tipo de EntitySpec desconhecido: " + spec.getClass());
         }
-    }
-
-    private void advancePhase() {
-        int nextIndex = currentPhaseIndex + 1;
-
-        if (nextIndex >= config.getPhaseFileNames().size()) {
-            LOGGER.info("All phases cleared, victory!");
-            state = GameState.VICTORY;
-            return;
-        }
-
-        state = GameState.PHASE_TRANSITION;
-        currentPhaseIndex = nextIndex;
-        loadPhase(currentPhaseIndex);
-        state = GameState.PLAYING;
     }
 
     private void spawnIfPresent(Projectile p){
@@ -221,8 +266,13 @@ public class Game {
             p.draw();
         }
 
-        hud.draw(currentPhase.getBossEntity());
-        
+        hud.draw(player, currentPhase.getBossEntity());
+
+        if (state == GameState.PHASE_TRANSITION) {
+            String message = "PHASE " + (completedPhaseIndex + 1) + " COMPLETE";
+            TextRenderer.drawTextCentered(message, GameLib.WIDTH / 2.0, GameLib.HEIGHT / 2.0, Color.WHITE, 28);
+        }
+
         GameLib.display();
     }
 
@@ -232,5 +282,36 @@ public class Game {
         } else if (state == GameState.GAME_OVER) {
             LOGGER.info("Game Over.");
         }
+    }
+
+    private boolean showEndScreenAndWaitForChoice() throws InterruptedException {
+        boolean victory = state == GameState.VICTORY;
+        long acceptInputAfter = System.currentTimeMillis() + END_SCREEN_INPUT_DEBOUNCE_MS;
+
+        while (true) {
+            renderEndScreen(victory);
+
+            if (System.currentTimeMillis() >= acceptInputAfter) {
+                if (GameLib.iskeyPressed(GameLib.KEY_ESCAPE)) {
+                    return false;
+                }
+                if (GameLib.iskeyPressed(GameLib.KEY_CONTROL)) {
+                    return true;
+                }
+            }
+
+            Thread.sleep(END_SCREEN_POLL_INTERVAL_MS);
+        }
+    }
+
+    private void renderEndScreen(boolean victory) {
+        starField.draw();
+
+        String title = victory ? "VICTORY!" : "GAME OVER";
+        Color titleColor = victory ? Color.GREEN : Color.RED;
+        TextRenderer.drawTextCentered(title, GameLib.WIDTH / 2.0, GameLib.HEIGHT / 2.0 - 60, titleColor, 44);
+        TextRenderer.drawTextCentered("CONTROL TO PLAY AGAIN", GameLib.WIDTH / 2.0, GameLib.HEIGHT / 2.0 + 30, Color.WHITE, 20);
+
+        GameLib.display();
     }
 }
