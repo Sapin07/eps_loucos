@@ -6,6 +6,7 @@ import game.core.entities.OwnerType;
 import game.core.entities.Player;
 import game.core.entities.Projectile;
 import game.core.entities.enemies.Enemy;
+import game.core.entities.powerUps.PowerUp;
 
 public class CollisionManager {
     // the projectiles list are updated in human notice time, while the collisions are checked every frame. 
@@ -19,6 +20,16 @@ public class CollisionManager {
         checkProjectilesAgainstEnemies(projectiles, enemies);
         checkProjectilesAgainstPlayer(projectiles, player);
         checkEnemiesAgainstPlayer(enemies, player);
+    }
+
+    public void checkPowerUpPickup(Player player, List<PowerUp> powerUps){
+        if (!player.isActive()) return;
+
+        for (PowerUp p : powerUps){
+            if (p.isActive() && p.hasCollidedWith(player)) {
+                p.collectBy(player);
+            }
+        }
     }
 
     private void checkProjectilesAgainstEnemies(List<Projectile> projectiles, List<Enemy> enemies){
