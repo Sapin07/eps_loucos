@@ -16,11 +16,14 @@ seguinte forma:
     \item \texttt{game.ui -} reúne os elementos de interface visual do jogo, como o \texttt{HUD} e o fundo de estrelas.
 \end{itemize}
 
-A hierarquia de classes concretas ficou assim:
+A hierarquia de classes das entidades (\texttt{game.core.entities}), por exemplo, pode ser representada por:
 
-\begin{center}
-    WOW IMAGEM DE UML FODÃO
-\end{center}
+\begin{figure}[H] % ou [htbp]
+    \centering
+    \includegraphics[width=0.56\textwidth]{images/hierarquia_entidades.png}
+    \caption{Hierarquia de classes de \texttt{core.entities}.}
+    \label{fig:sistema_fases}
+\end{figure}
 
 A hierarquia foi construída de forma que cada nível acrescente apenas as
 características específicas daquele conjunto de entidades (princípio classico de OO). Assim, informações
@@ -159,6 +162,48 @@ vetores. Sempre que um novo objeto participa do
 sistema de colisão, basta que ele implemente \texttt{Collidable} para que passe
 a utilizar o algoritmo já existente, sem exigir nenhuma alteração no
 \texttt{CollisionManager}.
+
+\subsection{Ciclo de vida do jogo}
+
+Além da organização interna de cada entidade, o comportamento do jogo como um
+todo também é modelado explicitamente através de um conjunto finito de
+estados, representados pelo enum \texttt{GameState}. Cada estado define o que
+está acontecendo na tela naquele momento (carregando, jogando, em transição
+de fase, etc.), e as transições entre eles são disparadas por eventos
+específicos, como a derrota do jogador, a conclusão de uma fase, ou o
+pressionamento de uma tecla.
+
+\begin{figure}[H] % ou [htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/ciclo_vida_gameState.jpeg}
+    \caption{Diagrama de estados do jogo}
+    \label{fig:fases_jogo}
+\end{figure}
+
+O jogo inicia em \texttt{LOADING}, e assim que uma nova rodada é montada
+(\texttt{startNewRound}), passa para \texttt{PLAYING} (estado em que a
+maior parte da lógica de atualização e desenho ocorre). Ao derrotar o chefe de
+uma fase, o jogo transita brevemente para \texttt{PHASE\_TRANSITION}, exibindo
+uma mensagem de conclusão antes de avançar para a próxima fase (retornando a
+\texttt{PLAYING}) ou, caso não haja mais fases, para \texttt{VICTORY}. Já a
+derrota do jogador (quando \texttt{Player.isActive()} se torna falso) leva
+diretamente a \texttt{GAME\_OVER}, e o pressionamento da tecla \texttt{ESC}
+em qualquer momento do jogo leva a \texttt{QUIT}, encerrando a execução.
+
+Essa modelagem evita que o estado do jogo seja controlado por múltiplas
+variáveis booleanas soltas (por exemplo, uma flag para "jogo acabou", outra
+para "está em transição de fase", outra para "está carregando"), que
+poderiam entrar em combinações inconsistentes entre si. Com um único enum
+representando o estado atual, cada parte do código pode
+consultar exatamente em qual estado o jogo se encontra e reagir de forma
+correspondente.
+
+\begin{figure}[H] % ou [htbp]
+    \centering
+    \includegraphics[width=0.65\textwidth]{images/loop_principal.png}
+    \caption{Loop principal}
+    \label{fig:loop_principal}
+\end{figure}
 
 \subsection{Uso de Coleções Java}
 

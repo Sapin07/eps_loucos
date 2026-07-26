@@ -125,6 +125,13 @@ execução. Um arquivo principal, definindo a vida do jogador e a lista de
 arquivos de fase, e um arquivo por fase, definindo os inimigos, power-ups e o
 chefe daquela fase (como consta no próprio enunciado). 
 
+\begin{figure}[H] % ou [htbp]
+    \centering
+    \includegraphics[width=0.4\textwidth]{images/sistema_de_fases.png}
+    \caption{Diagrama do sistema de fases}
+    \label{fig:sistema_fasess}
+\end{figure}
+
 A leitura desses arquivos é feita pelas classes
 \texttt{GameConfigParser} e \texttt{PhaseConfigParser}, que traduzem cada
 linha em um objeto do tipo \texttt{EntitySpec} (com as subclasses
@@ -137,10 +144,7 @@ responsabilidade da classe \texttt{SpawnManager}, com métodos \texttt{createBos
 
 Dessa forma, o restante do jogo (a classe \texttt{Game}) precisa apenas consultar o
 \texttt{SpawnManager} com o \texttt{EntitySpec} lido do arquivo de
-configuração, e a instância concreta correta é devolvida. O avanço de fase
-está diretamente ligado à derrota do chefe, isto é, assim que ele é desativado, a
-fase seguinte é carregada (ou o jogo é encerrado com uma mensagem de vitória,
-caso seja a última fase empolgante).
+configuração, e a instância concreta correta é devolvida.
 
 \subsection{Robustez do código (exceções e logging)}
 
