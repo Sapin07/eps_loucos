@@ -5,7 +5,6 @@ import java.awt.Color;
 import game.core.entities.OwnerType;
 import game.core.entities.Projectile;
 import game.core.entities.Ship;
-import lib.GameLib;
 
 public abstract class Enemy extends Ship {
     private static final int DEFAULT_SHOT_DAMAGE = 1;
