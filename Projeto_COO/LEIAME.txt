@@ -4,6 +4,8 @@ Integrantes:
   - Vinicius Cunha - 16973242
   - Gustavo Neves - 16986195
 
+Vídeo do funcionamento do Jogo: https://youtu.be/ETJPdSAlrB4
+
 Compilacao e execucao
 Requer JDK 25 e GNU Make.
     make            # compila o projeto em /bin/
