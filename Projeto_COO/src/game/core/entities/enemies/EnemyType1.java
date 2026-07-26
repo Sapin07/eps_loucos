@@ -1,6 +1,8 @@
 package game.core.entities.enemies;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 
 import game.core.entities.OwnerType;
 import game.core.entities.Projectile;
@@ -19,27 +21,28 @@ public class EnemyType1 extends Enemy {
     private static final double SHOOT_INTERVAL_MS = 500;
 
     private static final int SHOOT_DAMAGE = 1;
+    private static final int CONTACT_DAMAGE = 1;
 
     public EnemyType1(double x, double y) {
-        super(x, y, SIZE, SIZE, MAX_HEALTH, Color.GREEN, SHOOT_INTERVAL_MS);
+        super(x, y, SIZE, SIZE, MAX_HEALTH, Color.RED, SHOOT_INTERVAL_MS, CONTACT_DAMAGE, SHOOT_DAMAGE);
         setVelocity(0, FALL_SPEED);
     }
 
     @Override
     public void draw() {
         if (drawExplosion()) return;
-        
+
         GameLib.setColor(Color.GREEN);
         GameLib.drawCircle(x, y, SIZE/2);
     }
 
     @Override
-    public Projectile tryShoot(long currentTime, double targetX, double targetY) {
+    public List<Projectile> tryShoot(long currentTime, double targetX, double targetY) {
         if (!readyToShoot()) {
             return null;
         }
-
-        resetShotTimer();
-        return new Projectile(x, y + SIZE / 2, 0, PROJECTILE_SPEED, OwnerType.ENEMY, SHOOT_DAMAGE, Color.RED);
+        List<Projectile> projectiles = new  ArrayList<>();
+        projectiles.add(makeDefaultProjectile(x, y + SIZE / 2, 0, PROJECTILE_SPEED, OwnerType.ENEMY, Color.RED));
+        return projectiles;
     }
 }

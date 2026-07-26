@@ -16,8 +16,10 @@ public abstract class Boss extends Enemy {
 
     private Player target;
 
-    protected Boss(double x, double y, double width, double height, int maxHealth, Color color, double shootIntervalMs, double arenaX, double arenaY, double entrySpeed) {
-        super(x, y, width, height, maxHealth, color, shootIntervalMs);
+    protected Boss(double x, double y, double width, double height, int maxHealth, Color color,
+                    double shootIntervalMs, int contactDamage, int shotDamage,
+                    double arenaX, double arenaY, double entrySpeed) {
+        super(x, y, width, height, maxHealth, color, shootIntervalMs, contactDamage, shotDamage);
         this.arenaX = arenaX;
         this.arenaY = arenaY;
 
@@ -67,16 +69,20 @@ public abstract class Boss extends Enemy {
     }
 
     private void updateEntrance(long delta) {
-        move(delta);
+        // Snap to the arena position instead of moving-then-checking-a-fixed-tolerance: on a slow
+        // frame (or any speed/delta combo where a single step covers more ground than the
+        // remaining distance) the old distance check could be skipped over entirely, leaving the
+        // boss permanently "entering" and falling forever past the bottom of the screen.
+        double distanceRemaining = Math.hypot(arenaX - x, arenaY - y);
+        double stepDistance = Math.hypot(vx, vy) * (delta / 1000.0);
 
-        boolean reachedX = Math.abs(x - arenaX) < 2;
-        boolean reachedY = Math.abs(y - arenaY) < 2;
-
-        if (reachedX && reachedY) {
+        if (stepDistance >= distanceRemaining) {
             x = arenaX;
             y = arenaY;
             setVelocity(0, 0);
             entering = false;
+        } else {
+            move(delta);
         }
     }
 
@@ -94,6 +100,11 @@ public abstract class Boss extends Enemy {
     @Override
     protected boolean isOutOfBounds() {
         // A boss can't go out o f the bounds ;D
+        return false;
+    }
+
+    @Override
+    public boolean diesOnPlayerContact() {
         return false;
     }
 }
