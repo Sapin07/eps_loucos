@@ -27,6 +27,8 @@ public class EnemyType1 extends Enemy {
 
     @Override
     public void draw() {
+        if (drawExplosion()) return;
+        
         GameLib.setColor(Color.GREEN);
         GameLib.drawCircle(x, y, SIZE/2);
     }

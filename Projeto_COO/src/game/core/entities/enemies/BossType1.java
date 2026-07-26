@@ -63,6 +63,8 @@ public class BossType1 extends Boss {
 
     @Override
     public void draw() {
+        if (drawExplosion()) return;
+
         GameLib.setColor(COLOR);
         GameLib.drawCircle(x, y, SIZE / 2);
         GameLib.setColor(Color.WHITE);
