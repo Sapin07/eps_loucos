@@ -5,6 +5,7 @@ import java.util.List;
 import game.core.entities.OwnerType;
 import game.core.entities.Player;
 import game.core.entities.Projectile;
+import game.core.entities.enemies.Boss;
 import game.core.entities.enemies.Enemy;
 import game.core.entities.powerUps.PowerUp;
 

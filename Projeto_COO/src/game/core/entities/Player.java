@@ -18,11 +18,15 @@ public class Player extends Ship {
 
     private static final double DIAGONAL_FACTOR = Math.sqrt(2) /2; //pythagoras wow
     private static final double SHOT_SPREAD_ANGLE = Math.PI/12;
+    private static final int INVULNERABILITY_INTERVAL_MS = 1500;
+    private static final long BLINK_INTERVAL_MS = 100;    
     
     private long timeSinceLastShot = SHOT_INTERVAL_MS;
+    private long timeSinceLastDamage = INVULNERABILITY_INTERVAL_MS;
 
     private long shieldTimeRemaining = 0;
     private long tripleShotTimeRemaining = 0;
+    private boolean blinkState = false;
 
     public Player(double x, double y, int maxHealth) {
         super(x, y, SIZE * 2, SIZE * 2, maxHealth, Color.WHITE);
@@ -35,6 +39,8 @@ public class Player extends Ship {
         readInput(delta);
         clampToScreen();
         timeSinceLastShot += delta;
+        timeSinceLastDamage += delta;
+        blinkState = isInvulnerable() && (timeSinceLastDamage / BLINK_INTERVAL_MS) % 2 == 0;
         shieldTimeRemaining = Math.max(0, shieldTimeRemaining - delta);
         tripleShotTimeRemaining = Math.max(0, tripleShotTimeRemaining - delta);
     }
@@ -107,10 +113,15 @@ public class Player extends Ship {
 
     @Override
     public void takeDamage(int damage) {
-        if (isShielded()) {
+        if (isShielded() || isInvulnerable()) {
             return;
         }
+        timeSinceLastDamage = 0;
         super.takeDamage(damage);
+    }
+
+    private boolean isInvulnerable() {
+        return timeSinceLastDamage < INVULNERABILITY_INTERVAL_MS;
     }
 
     @Override 
@@ -118,7 +129,8 @@ public class Player extends Ship {
         if (drawExplosion()) return;
 
         GameLib.setColor(isShielded() ? Color.CYAN : color);
-        GameLib.drawPlayer(x, y, SIZE);
+        if (!blinkState)
+            GameLib.drawPlayer(x, y, SIZE);
     }
 
     @Override
