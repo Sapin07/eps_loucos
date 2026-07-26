@@ -32,6 +32,10 @@ public class Phase {
         this.bossEntity = boss;
     }
 
+    public Enemy getBossEntity() {
+        return bossEntity;
+    }
+    
     public boolean isComplete() {
         return bossEntity != null && !bossEntity.isActive();
     }
