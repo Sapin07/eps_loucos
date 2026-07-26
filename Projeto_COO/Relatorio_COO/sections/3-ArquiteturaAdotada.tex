@@ -5,13 +5,15 @@
 
 Para substituir a implementação procedural do jogo, o projeto foi reorganizado
 em uma estrutura baseada em classes e interfaces, separando responsabilidades e
-agrupando comportamentos semelhantes. A organização dos pacotes ficou da
+agrupando comportamentos semelhantes. A organização final dos pacotes ficou da
 seguinte forma:
 
 \begin{itemize}
-    \item \texttt{game.core -} reúne interfaces e classes utilizadas por diferentes partes do jogo.
-    \item \texttt{game.core.collision -} concentra a lógica relacionada ao sistema de colisão.
-    \item \texttt{game.entities -} contém as entidades que representam os elementos do jogo.
+    \item \texttt{game.core -} reúne interfaces utilizadas por diferentes partes do jogo (\texttt{Drawable}, \texttt{Updatable}, \texttt{Damageable}).
+    \item \texttt{game.core.collision -} concentra a lógica relacionada ao sistema de colisão (\texttt{Collidable} e \texttt{CollisionManager}).
+    \item \texttt{game.core.entities -} contém as entidades que representam os elementos do jogo, com os subpacotes \texttt{enemies} (inimigos comuns e chefes) e \texttt{powerUps} (os dois tipos de power-up).
+    \item \texttt{game.config -} reúne a leitura dos arquivos de configuração, com os subpacotes \texttt{spawn} (representação unificada das linhas de fase) e \texttt{phase} (controle de quando cada entidade deve surgir).
+    \item \texttt{game.ui -} reúne os elementos de interface visual do jogo, como o \texttt{HUD} e o fundo de estrelas.
 \end{itemize}
 
 A hierarquia de classes concretas ficou assim:
@@ -21,43 +23,107 @@ A hierarquia de classes concretas ficou assim:
 \end{center}
 
 A hierarquia foi construída de forma que cada nível acrescente apenas as
-características específicas daquele conjunto de entidades. Assim, informações
-comuns, como posição, movimentação ou vida, são definidas apenas uma vez e
-reaproveitadas pelas subclasses, reduzindo duplicação de código e facilitando a
+características específicas daquele conjunto de entidades (princípio classico de OO). Assim, informações
+comuns, como posição, movimentação ou vida, são definidas apenas um vez e
+reaproveitadas pelas subclasses, reduzindo duplicação de código (consequentemente reduzindo chances de bugs) e facilitando a
 manutenção da implementação.
 
 \subsection{Interfaces em \texttt{game.core}}
 
 As interfaces foram utilizadas para representar capacidades independentes das
 entidades do jogo. Em vez de concentrar todos os comportamentos em uma única
-classe base, cada interface define apenas uma responsabilidade específica,
-permitindo que cada classe implemente somente os comportamentos de que realmente
-necessita.
+classe base, cada interface define apenas uma responsabilidade específica (similar a um contrato),
+permitindo que cada classe implemente somente os comportamentos que são realmente necessários.
 
 \begin{itemize}
-    \item \texttt{Drawable}: define a operação responsável pelo desenho da entidade na tela.
-    \item \texttt{Updatable}: representa objetos cujo estado precisa ser atualizado a cada ciclo do jogo.
-    \item \texttt{Damageable}: reúne as operações relacionadas ao sistema de dano e vida, sendo implementada apenas pelas entidades que podem sofrer dano.
-    \item \texttt{Collidable}: define as informações necessárias para o sistema de colisão e disponibiliza um método padrão para verificar a sobreposição entre dois objetos.
+    \item \texttt{Drawable}. define a operação responsável pelo desenho da entidade na tela.
+    \item \texttt{Updatable}. representa objetos cujo estado precisa ser atualizado a cada ciclo do jogo.
+    \item \texttt{Damageable}. reúne as operações relacionadas ao sistema de dano e vida, sendo implementada apenas pelas entidades que podem sofrer dano.
+    \item \texttt{Collidable}. define as informações necessárias para o sistema de colisão e disponibiliza um método padrão para verificar a sobreposição entre dois objetos.
 \end{itemize}
 
 Essa separação torna a arquitetura mais flexível, pois evita que uma classe
 precise implementar comportamentos que não fazem sentido para ela. Por exemplo,
-um elemento da interface gráfica pode ser desenhado sem necessariamente
-participar do sistema de colisão.
+os elementos do \texttt{game.ui}, como o fundo de estrelas, implementam apenas
+\texttt{Drawable} e \texttt{Updatable}, sem participar do sistema de colisão
+nem possuir pontos de vida, já que essas capacidades não fazem sentido para um
+elemento puramente visual.
+
+\begin{lstlisting}[caption={contrato e comprtamento padrão da interface \texttt{Collidable} (Collidable.java)}]
+public interface Collidable {
+    double getX();
+    double getY();
+    double getWidth();
+    double getHeight();
+
+    default boolean hasCollidedWith(Collidable other){
+        double halfW1 = getWidth() / 2.0;
+        double halfH1 = getHeight() / 2.0;
+        double halfW2 = other.getWidth() / 2.0;
+        double halfH2 = other.getHeight() / 2.0;
+
+        return Math.abs(getX() - other.getX()) < (halfW1 + halfW2)
+            && Math.abs(getY() - other.getY()) < (halfH1 + halfH2);
+    }
+}
+\end{lstlisting}
+
+Por ser um método \texttt{default}, qualquer classe que implemente
+\texttt{Collidable} já ganha automaticamente a lógica de detecção de
+sobreposição entre retângulos, sem precisar reimplementar.
 
 \subsection{Por que \texttt{GameObject} e \texttt{Entity} são classes separadas}
 
 A classe \texttt{GameObject} reúne apenas as informações presentes em qualquer
-objeto exibido na tela, como posição e estado de atividade. A classe
-\texttt{Entity} estende essa estrutura adicionando atributos relacionados à
-movimentação e às colisões, como velocidade e dimensões.
+objeto exibido na tela, como posição, estado de atividade e a verificação de
+quando um objeto saiu dos limites da tela:
+
+\begin{lstlisting}[caption={Responsabilidades mínimas comuns a qualquer objeto do jogo (GameObject.java)}]
+public abstract class GameObject implements Drawable, Updatable {
+    protected double x;
+    protected double y;
+    protected boolean active;
+    ...
+    protected boolean isOutOfBounds(){
+        return x < - OUT_OF_BOUNDS_MARGIN
+            || x > GameLib.WIDTH + OUT_OF_BOUNDS_MARGIN
+            || y < - OUT_OF_BOUNDS_MARGIN
+            || y > GameLib.HEIGHT + OUT_OF_BOUNDS_MARGIN;
+    }
+}
+\end{lstlisting}
+
+A classe \texttt{Entity} estende essa estrutura (ou seja \texttt{Entity} é um \texttt{GameObject}) adicionando atributos
+relacionados à movimentação e às colisões, como velocidade e dimensões, além de
+implementar \texttt{Collidable}. Parte da estrutura de Entity a seguir:
+
+\begin{lstlisting}[caption={\texttt{Entity} reparoveita isOutOfBounds() da sua superclasse (Entity.java)}]
+public abstract class Entity extends GameObject implements Collidable {
+    protected double vx, vy;
+    protected double width, height;
+    ...
+    @Override
+    public void update(long delta){
+        move(delta);
+
+        if (isOutOfBounds()){
+            deadactivate();
+        }
+    }
+}
+\end{lstlisting}
+
+Repare que \texttt{update} cuida para que qualquer entidade
+que saia da área de jogo (um projétil ou um inimigo comum, por exemplo) seja
+desativada automaticamente por esse comportamento herdado (\texttt{isOutOfBounds}), sem que cada
+subclasse precise implementar essa verificação por conta própria.
 
 Essa divisão permite que diferentes tipos de entidade compartilhem toda a lógica
 básica de movimentação sem carregar responsabilidades que não lhes pertencem.
 Por exemplo, projéteis e power-ups herdam o comportamento de movimento definido
 em \texttt{Entity}, mas não possuem atributos relacionados à vida ou dano, que
-só passam a existir na classe \texttt{Ship}.
+só passam a existir na classe \texttt{Ship}, utilizada pelo jogador e pelos
+inimigos.
 
 Com essa organização, a lógica comum de atualização permanece concentrada em um
 único ponto da hierarquia e é automaticamente reutilizada pelas subclasses.
@@ -65,16 +131,91 @@ Com essa organização, a lógica comum de atualização permanece concentrada e
 \subsection{Um único algoritmo de colisão para todos os pares}
 
 A interface \texttt{Collidable} permitiu unificar a lógica de colisão em um
-único algoritmo capaz de operar sobre qualquer objeto que implemente esse
-contrato. Dessa forma, o mesmo mecanismo pode ser utilizado para verificar
-colisões entre jogadores, inimigos, projéteis e power-ups.
+único algoritmo capaz de operar sobre qualquer objeto que implemente essa
+interface. Dessa forma, o mesmo mecanismo pode ser utilizado para verificar
+colisões entre jogadores, inimigos, projéteis e power-ups. A classe
+\texttt{CollisionManager} concentra todas essas verificações:
+
+\begin{lstlisting}[caption={Alguns métodos de \texttt{CollisionManager} operando sobre listas de classes \texttt{Collidable} (CollisionManager.java)}]
+public void checkCollisions(Player player, List<Enemy> enemies, List<Projectile> projectiles){
+    checkProjectilesAgainstEnemies(projectiles, enemies);
+    checkProjectilesAgainstPlayer(projectiles, player);
+    checkEnemiesAgainstPlayer(enemies, player);
+}
+
+public void checkPowerUpPickup(Player player, List<PowerUp> powerUps){
+    for (PowerUp p : powerUps){
+        if (p.isActive() && p.hasCollidedWith(player)) {
+            p.collectBy(player);
+        }
+    }
+}
+\end{lstlisting}
 
 Essa abordagem elimina a necessidade de criar uma implementação específica para
-cada combinação de entidades. Sempre que um novo objeto participa do sistema de
-colisão, basta que ele implemente \texttt{Collidable} para que passe a utilizar
-o algoritmo já existente.
+cada combinação de entidades, como ocorria no código original, no qual cinco
+laços praticamente idênticos verificavam colisões entre pares diferentes de
+vetores. Sempre que um novo objeto participa do
+sistema de colisão, basta que ele implemente \texttt{Collidable} para que passe
+a utilizar o algoritmo já existente, sem exigir nenhuma alteração no
+\texttt{CollisionManager}.
 
 \subsection{Uso de Coleções Java}
 
-Texto........
+Enquanto o \texttt{Main.java} original mantinha cada conjunto de entidades em
+vetores de tamanho fixo, controlando manualmente quais posições estavam
+ocupadas ou livres, a reescrita aplicada na nova organização
+substitui essa abordagem pelo uso do arcabouço de coleções do Java. A classe
+\texttt{Game} passou a armazenar inimigos, projéteis e power-ups em listas.
+
+\begin{lstlisting}[caption={Gerenciamento de entidades}]
+private final List<Enemy> enemies;
+private final List<Projectile> projectiles;
+private final List<PowerUp> powerUps;
+...
+this.enemies = new LinkedList<>();
+this.projectiles = new LinkedList<>();
+this.powerUps = new LinkedList<>();
+\end{lstlisting}
+
+Como as coleções do Java são estruturas dinâmicas, não existe mais um limite
+pré-estabelecido para o número de entidades simultâneas em cena, nem a necessidade
+de uma busca manual por um índice livre, como fazia era feito no código original. Basta adicionar um novo elemento à
+coleção correspondente quando a entidade é criada.
+
+A remoção de entidades inativas também deixou de depender de verificações
+manuais de estado espalhadas pelo código, sendo concentrada em uma única
+chamada por coleção a cada ciclo de atualização.
+
+\begin{lstlisting}[caption={Remoção de entidades inativas via \texttt{removeIf} (Game.java)}]
+enemies.removeIf(e -> !e.isActive());
+projectiles.removeIf(p -> !p.isActive());
+powerUps.removeIf(p -> !p.isActive());
+\end{lstlisting}
+
+Dessa forma, garante-se que nenhuma entidade inativa permaneça ocupando espaço
+indefinidamente, assim evitando preocupações quanto ao vazamento de memória.
+
+Vale ressaltar que o uso de coleções não se restringiu ao gerenciamento das entidades em jogo.
+A classe \texttt{Phase}, responsável por controlar a aparição de inimigos,
+chefes e power-ups ao longo de uma fase, também é construída sobre uma lista.
+
+\begin{lstlisting}[caption={Utilização de lista para agendar as aparições da fase (Phase.java)}]
+private final List<EntitySpec> schedule; // ordered by whenMs
+
+public List<EntitySpec> pollDueSpawns(long elapsedMs){
+    List<EntitySpec> due = new ArrayList<>();
+
+    while (nextIndex < schedule.size() && schedule.get(nextIndex).getWhenMs() <= elapsedMs) {
+        due.add(schedule.get(nextIndex));
+        nextIndex++;
+    }
+
+    return due;
+}
+\end{lstlisting}
+
+Nesse caso, a lista ordenada por instante de aparição permite que o método
+\texttt{pollDueSpawns} percorra o cronograma da fase de forma incremental,
+devolvendo apenas as entidades cujo instante de aparição já foi atingido.
 
