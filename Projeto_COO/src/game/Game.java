@@ -20,6 +20,11 @@ import game.core.spawn.SpawnManager;
 import lib.GameLib;
 
 public class Game {
+    // todo:
+    // - should we use multi threads?
+    // - fix boss
+    // - hud
+
     private static final Logger LOGGER = Logger.getLogger(Game.class.getName());
 
     private final GameConfig config;
@@ -76,10 +81,10 @@ public class Game {
                 render();
             }
         } catch (Exception e) {
-            // last-resort safety net: without this, a startup/runtime failure (e.g. a phase
-            // file not found because of the working directory) would crash the thread after
-            // initGraphics() already opened the window, leaving a frozen, never-drawn screen
-            // with no visible clue why.
+            // last resort
+            // without this, a startup/runtime failure (e.g. a phase file not found because of the working directory)
+            // would crash the thread after initGraphics() already opened the window, leaving a frozen (inside like the music, wake me up, wake me up inside),
+            //  never-drawn screen with no visible clue why
             LOGGER.log(Level.SEVERE, "Fatal error, aborting game.", e);
             state = GameState.GAME_OVER;
         }
