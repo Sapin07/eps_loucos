@@ -1,12 +1,70 @@
 \section{Arquitetura da reorganização do projeto}
 \label{sec:estrutura}
 
+Esta seção apresenta
+uma nova organização para o mesmo projeto mas de modo a evitar os erros que foram apontados na Sessão \ref{sec:critica}. Em vez de descrever apenas o resultado
+final, a ideia é mostrar também o raciocínio por trás de cada decisão, justificando a existência de classes, herança, interfaces e como cada escolha resolve algum dos problemas discutidos anteriormente.
+
 \subsection{Visão geral da hierarquia de classes adotadas}
 
 Para substituir a implementação procedural do jogo, o projeto foi reorganizado
 em uma estrutura baseada em classes e interfaces, separando responsabilidades e
 agrupando comportamentos semelhantes. A organização final dos pacotes ficou da
 seguinte forma:
+
+\dirtree{%
+.1 game.
+.2 config.
+.3 GameConfig.java.
+.3 GameConfigParser.java.
+.3 phase.
+.4 PhaseConfigParser.java.
+.4 Phase.java.
+.3 spawn.
+.4 BossKind.java.
+.4 BossSpawnEntry.java.
+.4 EnemyKind.java.
+.4 EnemySpawnEntry.java.
+.4 EntitySpec.java.
+.4 PowerUpKind.java.
+.4 PowerUpSpawnEntry.java.
+.4 SpawnManager.java.
+.2 core.
+.3 collision.
+.4 Collidable.java.
+.4 CollisionManager.java.
+.3 Damageable.java.
+.3 Drawable.java.
+.3 entities.
+.4 enemies.
+.5 Boss.java.
+.5 BossType1.java.
+.5 BossType2.java.
+.5 Enemy.java.
+.5 EnemyType1.java.
+.5 EnemyType2.java.
+.4 Entity.java.
+.4 GameObject.java.
+.4 OwnerType.java.
+.4 Player.java.
+.4 powerUps.
+.5 PowerUp.java.
+.5 ShieldPowerUp.java.
+.5 TripleShotPowerUp.java.
+.4 Projectile.java.
+.4 Ship.java.
+.3 Updatable.java.
+.2 Game.java.
+.2 GameState.java.
+.2 Main.java.
+.2 ui.
+.3 HealthBar.java.
+.3 HealthSlots.java.
+.3 HUD.java.
+.3 StarField.java.
+.3 StarLayer.java.
+.3 TextRenderer.java.
+}
 
 \begin{itemize}
     \item \texttt{game.core -} reúne interfaces utilizadas por diferentes partes do jogo (\texttt{Drawable}, \texttt{Updatable}, \texttt{Damageable}).
@@ -22,7 +80,7 @@ A hierarquia de classes das entidades (\texttt{game.core.entities}), por exemplo
     \centering
     \includegraphics[width=0.56\textwidth]{images/hierarquia_entidades.png}
     \caption{Hierarquia de classes de \texttt{core.entities}.}
-    \label{fig:sistema_fases}
+    \label{fig:hierarquia_entidades}
 \end{figure}
 
 A hierarquia foi construída de forma que cada nível acrescente apenas as
@@ -126,14 +184,11 @@ básica de movimentação sem carregar responsabilidades que não lhes pertencem
 Por exemplo, projéteis e power-ups herdam o comportamento de movimento definido
 em \texttt{Entity}, mas não possuem atributos relacionados à vida ou dano, que
 só passam a existir na classe \texttt{Ship}, utilizada pelo jogador e pelos
-inimigos.
-
-Com essa organização, a lógica comum de atualização permanece concentrada em um
-único ponto da hierarquia e é automaticamente reutilizada pelas subclasses.
+inimigos (para melhor visualizaçãodo exemplo basta ver a Figura \ref{fig:hierarquia_entidades}).
 
 \subsection{Um único algoritmo de colisão para todos os pares}
 
-A interface \texttt{Collidable} permitiu unificar a lógica de colisão em um
+A interface \texttt{Collidable} permite unificar a lógica de colisão em um
 único algoritmo capaz de operar sobre qualquer objeto que implemente essa
 interface. Dessa forma, o mesmo mecanismo pode ser utilizado para verificar
 colisões entre jogadores, inimigos, projéteis e power-ups. A classe
@@ -156,7 +211,7 @@ public void checkPowerUpPickup(Player player, List<PowerUp> powerUps){
 \end{lstlisting}
 
 Essa abordagem elimina a necessidade de criar uma implementação específica para
-cada combinação de entidades, como ocorria no código original, no qual cinco
+cada combinação de entidades, como ocorria no código original, no qual vários
 laços praticamente idênticos verificavam colisões entre pares diferentes de
 vetores. Sempre que um novo objeto participa do
 sistema de colisão, basta que ele implemente \texttt{Collidable} para que passe
@@ -169,7 +224,7 @@ Além da organização interna de cada entidade, o comportamento do jogo como um
 todo também é modelado explicitamente através de um conjunto finito de
 estados, representados pelo enum \texttt{GameState}. Cada estado define o que
 está acontecendo na tela naquele momento (carregando, jogando, em transição
-de fase, etc.), e as transições entre eles são disparadas por eventos
+de fase, entre outros), e as transições entre eles são disparadas por eventos
 específicos, como a derrota do jogador, a conclusão de uma fase, ou o
 pressionamento de uma tecla.
 
@@ -180,9 +235,9 @@ pressionamento de uma tecla.
     \label{fig:fases_jogo}
 \end{figure}
 
-O jogo inicia em \texttt{LOADING}, e assim que uma nova rodada é montada
+Em suma, funciona da seguinte maneira, o jogo inicia em \texttt{LOADING}, e assim que uma nova rodada é montada
 (\texttt{startNewRound}), passa para \texttt{PLAYING} (estado em que a
-maior parte da lógica de atualização e desenho ocorre). Ao derrotar o chefe de
+maior parte da lógica de atualização e desenho acontece). Ao derrota o chefe de
 uma fase, o jogo transita brevemente para \texttt{PHASE\_TRANSITION}, exibindo
 uma mensagem de conclusão antes de avançar para a próxima fase (retornando a
 \texttt{PLAYING}) ou, caso não haja mais fases, para \texttt{VICTORY}. Já a
@@ -191,8 +246,7 @@ diretamente a \texttt{GAME\_OVER}, e o pressionamento da tecla \texttt{ESC}
 em qualquer momento do jogo leva a \texttt{QUIT}, encerrando a execução.
 
 Essa modelagem evita que o estado do jogo seja controlado por múltiplas
-variáveis booleanas soltas (por exemplo, uma flag para "jogo acabou", outra
-para "está em transição de fase", outra para "está carregando"), que
+variáveis booleanas soltas, que
 poderiam entrar em combinações inconsistentes entre si. Com um único enum
 representando o estado atual, cada parte do código pode
 consultar exatamente em qual estado o jogo se encontra e reagir de forma
@@ -209,8 +263,8 @@ correspondente.
 
 Enquanto o \texttt{Main.java} original mantinha cada conjunto de entidades em
 vetores de tamanho fixo, controlando manualmente quais posições estavam
-ocupadas ou livres, a reescrita aplicada na nova organização
-substitui essa abordagem pelo uso do arcabouço de coleções do Java. A classe
+ocupadas ou livres, a nova abordagem aplicada na nova organização
+substitui essa implementação pelo uso das coleções do Java. A classe
 \texttt{Game} passou a armazenar inimigos, projéteis e power-ups em listas.
 
 \begin{lstlisting}[caption={Gerenciamento de entidades}]
@@ -223,10 +277,10 @@ this.projectiles = new LinkedList<>();
 this.powerUps = new LinkedList<>();
 \end{lstlisting}
 
-Como as coleções do Java são estruturas dinâmicas, não existe mais um limite
+Como as coleções do Java são estruturas dinamicas, não existe mais um limite
 pré-estabelecido para o número de entidades simultâneas em cena, nem a necessidade
-de uma busca manual por um índice livre, como fazia era feito no código original. Basta adicionar um novo elemento à
-coleção correspondente quando a entidade é criada.
+de uma busca manual por um índice livre (como era feito no código original). Basta adicionar um novo elemento à
+coleção correspondente quando uma entidade é criada.
 
 A remoção de entidades inativas também deixou de depender de verificações
 manuais de estado espalhadas pelo código, sendo concentrada em uma única

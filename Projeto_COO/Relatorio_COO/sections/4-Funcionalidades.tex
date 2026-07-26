@@ -25,12 +25,14 @@ public abstract class PowerUp extends Entity {
 }
 \end{lstlisting}
 
-A regra de que um power-up só
-pode ser coletado uma única vez, e que ele se desativa imediatamente após ser
-coletado, é comum a qualquer power-up e não pode ser alterada por engano em
-uma subclasse (por isso o \texttt{final}). Apenas o efeito em si (\texttt{applyEffect}) varia.
+As seguintes regras são comuns a todo power-up e não podem ser alteradas por engano em qualquer sub-classe (por isso o \texttt{final}): 
 
-Esses foram os Power-ups implementados:
+\begin{itemize}
+    \item Um power-up só pode ser coletado uma única vez.
+    \item Ele se desativa imediatamente após ser coletado.
+\end{itemize}
+
+No entanto, o efeito em si (\texttt{applyEffect}) varia conforme o tipo de power-up. Esses foram os Power-ups implementados:
 
 \begin{itemize}
     \item \textbf{\texttt{ShieldPowerUp}}: Concede ao jogador um escudo
@@ -42,7 +44,7 @@ Esses foram os Power-ups implementados:
 
 Vale notar que a escolha de cada efeito exigiu também a criação de métodos correspondentes na própria
 classe \texttt{Player}, responsáveis por ativar, consultar e expirar cada
-efeito ao longo do tempo:
+efeito ao longo do tempo. Exemplo:
 
 \begin{lstlisting}[caption={Métodos adicionados a \texttt{Player} para suportar os efeitos dos power-ups (Player.java)}]
 public void activateShield(long durationMs) {
@@ -148,15 +150,13 @@ configuração, e a instância concreta correta é devolvida.
 
 \subsection{Robustez do código (exceções e logging)}
 
-\subsubsection{Exceções}
-
-A leitura dos arquivos de configuração é o ponto do projeto com maior
-exposição a erros em tempo de execução, arquivos podem não existir, ter
-campos faltando, valores fora do formato esperado, ou um caminho relativo
-incorreto dependendo de onde o jogo é executado. Por isso, o módulo de
+A leitura dos arquivos de configuração citado na sessão anterior é o ponto do projeto com maior
+exposição a erros em tempo de execução. Por isso, o módulo de
 configuração (\texttt{game.config} e seus subpacotes) foi tratado com atenção
 especial, combinando exceções descritivas com o uso de
 \texttt{java.util.logging} para registrar o que aconteceu.
+
+\subsubsection{Exceções}
 
 Sempre que uma linha de um arquivo de configuração está malformada, o parser
 correspondente lança uma exceção com uma mensagem específica, indicando
@@ -178,8 +178,8 @@ private int parseIntline(String line, String description){
 Essas exceções, no entanto, são tratadas de duas formas diferentes dependendo
 da sua gravidade, o que evita que um erro pontual derrube o jogo inteiro
 desnecessariamente. Uma entrada isolada malformada dentro de um arquivo de
-fase (um \texttt{INIMIGO}, \texttt{POWERUP} ou \texttt{CHEFE} com tipo
-desconhecido, por exemplo) é simplesmente ignorada, registrando um aviso e
+fase (um \texttt{INIMIGO} ou \texttt{POWERUP} com tipo
+desconhecido/fora do padrão, por exemplo) é simplesmente ignorada, registrando um aviso e
 permitindo que o restante da fase continue normalmente, como mostra:
 
 \begin{lstlisting}[caption={Uma entrada inválida não derruba a fase inteira (Game.java)}]
@@ -216,12 +216,15 @@ try {
 
 \subsubsection{Logging}
 
-O uso do \texttt{Logger} (de \texttt{java.util.logging}) permite diferenciar a
-gravidade de cada evento por nível, sendo \texttt{INFO} para o progresso normal do
-jogo (início de round, carregamento de fase, derrota de um chefe),
-\texttt{WARNING} para entradas inválidas ignoradas e \texttt{SEVERE} para
-falhas fatais com o rastro de pilha completo anexado. Em vez de misturar
-tudo em uma única saída de texto sem distinção de severidade. Eventos mais
-frequentes e de baixo interesse fora de depuração, como o surgimento de cada
-inimigo comum, são registrados em nível \texttt{FINE}, mantendo a saída
-padrão do jogo limpa durante uma execução normal.
+O uso do \texttt{Logger} (de \texttt{java.util.logging}) contribui para uma melhor
+organização das informações geradas durante a execução do programa. Em vez de
+exibir todas as mensagens da mesma forma, o sistema permite classificá-las de
+acordo com sua importância, facilitando a identificação de eventos relevantes e
+de possíveis problemas.
+
+Além de auxiliar durante o desenvolvimento e os testes, o uso de \textit{logging}
+é considerado uma boa prática em projetos de software, pois torna a manutenção
+mais simples e o acompanhamento do comportamento da aplicação mais eficiente.
+Dessa forma, informações importantes podem ser registradas sem comprometer a
+clareza da saída principal do jogo, mantendo a experiência do usuário mais
+organizada e facilitando futuras correções ou melhorias.

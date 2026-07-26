@@ -4,7 +4,7 @@
 
 O \texttt{Main.java} fornecido implementa corretamente o funcionamento do jogo,
 porém sua estrutur segue um modelo inteiramente procedural, apesar de ter sido
-desenvolvido em Java. Conceitos fundamentais da programação orientada a objetos,
+desenvolvido em Java. Da maneira que foi aplicado o código, conceitos fundamentais da programação orientada a objetos,
 como encapsulamento, abstração, herança, polimorfismo e o uso de coleções,
 praticamente não são explorados. Em vez disso, toda a lógica da aplicação é
 concentrada em um único método, utilizando variáveis primitivas e vetores para
@@ -13,7 +13,7 @@ de Linguagem C e decidiu se aventurar no Java.
 
 Embora essa abordagem seja suficiente para um projeto pequeno, ela dificulta a
 organização do código, reduz seu potencial de reutilização e torna sua evolução
-mais trabalhosa.
+muito mais trabalhosa.
 
 \subsection{Ausência de modelagem orientada a objetos}
 
@@ -27,7 +27,7 @@ Como consequência, o estado de cada entidade é representado por variáveis
 primitivas independentes, manipuladas diretamente ao longo do programa, como no
 caso do jogador:
 
-\begin{lstlisting}[caption={Estado do jogador: variáveis primitivas sem uma classe que represente a entidade (Main.java)}]
+\begin{lstlisting}[caption={Variáveis primitivas sem uma classe que represente a entidade (Main.java)}]
 int player_state = ACTIVE;
 double player_X = GameLib.WIDTH / 2;
 double player_Y = GameLib.HEIGHT * 0.90;
@@ -61,7 +61,7 @@ mesma entidade.
 
 O inimigo do tipo 1, por exemplo, é representado pelos seguintes vetores:
 
-\begin{lstlisting}[caption={Inimigo tipo 1 representado por vetores paralelos (Main.java)}]
+\begin{lstlisting}[caption={Representação do Inimigo tipo 1 (Main.java)}]
 int    [] enemy1_states          = new int[10];
 double [] enemy1_X               = new double[10];
 double [] enemy1_Y               = new double[10];
@@ -99,14 +99,12 @@ public static int findFreeIndex(int [] stateArray){
 }
 \end{lstlisting}
 
-Na prática, esse método reproduz manualmente uma funcionalidade que já é
-oferecida pelas coleções da biblioteca padrão do Java. Usando estruturas como
-\texttt{List}, por exemplo, acabos por eliminar a necessidade de procurar
-posições livres e de manter índices sincronizados entre diversos vetores.
-
 Além disso, o uso de vetores de tamanho fixo impõe uma limitação artificial ao
 número de entidades existentes simultaneamente no jogo. Quando todos os índices
 estão ocupados, novas entidades simplesmente deixam de ser criadas.
+
+Na prática, esse método (\texttt{findFreeIndex}) busca reproduzir manualmente uma funcionalidade que já é
+oferecida pelas coleções da biblioteca padrão do Java, este tópico em específico sobre o uso das coleções de Java será melhor elaborado na Sessão \ref{sec:estrutura}.
 
 \subsection{Consequências da arquitetura adotada}
 
@@ -117,13 +115,12 @@ precisam ser reimplementadas para cada caso específico, resultando em grande
 quantidade de código duplicado (o que nunca é positivo).
 
 Esse problema aparece na detecção de colisões. O programa
-possui cinco laços distintos para verificar colisões entre diferentes pares de
-entidades, como jogador e projéteis inimigos, jogador e inimigos, ou projéteis
-do jogador contra inimigos. Embora trabalhem sobre vetores diferentes, todos
+possui vários laços distintos para verificar colisões entre diferentes pares de
+entidades (como jogador e projéteis inimigos, jogador e inimigos, entre outros). Embora trabalhem sobre vetores diferentes, todos
 executam exatamente a mesma sequência de operações (calcular a distância entre
 os objetos e compará-la com a soma de seus raios).
 
-\begin{lstlisting}[caption={Dois dos cinco laços de colisão presentes no código original (Main.java)}]
+\begin{lstlisting}[caption={Exemplos de laços de colisão presentes no código original (Main.java)}]
 for(int i = 0; i < e_projectile_states.length; i++){
     double dx = e_projectile_X[i] - player_X;
     double dy = e_projectile_Y[i] - player_Y;
@@ -200,7 +197,7 @@ Todos os vetores possuem tamanho fixo, definido manualmente durante sua criaçã
 Quando não há mais posições disponíveis, novas entidades simplesmente deixam de
 ser criadas.
 
-\begin{lstlisting}[caption={Disparo descartado quando todos os índices do vetor estão ocupados (Main.java)}]
+\begin{lstlisting}[caption={Projetil descartado quando todos os índices do vetor estão ocupados (Main.java)}]
 int free = findFreeIndex(projectile_states);
 if(free < projectile_states.length){
     projectile_X[free] = player_X;
