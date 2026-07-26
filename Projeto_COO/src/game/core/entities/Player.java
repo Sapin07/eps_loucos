@@ -11,12 +11,13 @@ public class Player extends Ship {
     // to adjust, maybe to read from env file
     private static final double SIZE = 10;
     private static final double SPEED = 220;
+
     private static final long SHOT_INTERVAL_MS = 250;
     private static final int SHOT_DAMAGE = 1;
     private static final int SHOT_SPEED = -400;
+
     private static final double DIAGONAL_FACTOR = Math.sqrt(2) /2; //pythagoras wow
-    
-    private static final double TRIPLE_SHOT_DISTX = 15;
+    private static final double SHOT_SPREAD_ANGLE = Math.PI/12;
     
     private long timeSinceLastShot = SHOT_INTERVAL_MS;
 
@@ -67,14 +68,19 @@ public class Player extends Ship {
 
         timeSinceLastShot = 0;
         List<Projectile> playerShoots = new LinkedList<>();
+
         playerShoots.add(new Projectile(x, y - height / 2, 0, SHOT_SPEED, OwnerType.PLAYER, SHOT_DAMAGE, Color.CYAN));
 
         if (hasTripleShot()) {
+            double vxL = -SHOT_SPEED * Math.sin(-SHOT_SPREAD_ANGLE);
+            double vyL = SHOT_SPEED * Math.cos(-SHOT_SPREAD_ANGLE);
             playerShoots.add(
-                new Projectile(x - TRIPLE_SHOT_DISTX, y - height / 2, 0, SHOT_SPEED, OwnerType.PLAYER, SHOT_DAMAGE, Color.CYAN)
+                new Projectile(x, y - height / 2, vxL, vyL, OwnerType.PLAYER, SHOT_DAMAGE, Color.CYAN)
             );
+            double vxR = -SHOT_SPEED * Math.sin(SHOT_SPREAD_ANGLE);
+            double vyR = SHOT_SPEED * Math.cos(SHOT_SPREAD_ANGLE);
             playerShoots.add(
-                new Projectile(x + TRIPLE_SHOT_DISTX, y - height / 2, 0, SHOT_SPEED, OwnerType.PLAYER, SHOT_DAMAGE, Color.CYAN)
+                new Projectile(x, y - height / 2, vxR, vyR, OwnerType.PLAYER, SHOT_DAMAGE, Color.CYAN)
             );  
         }
 
