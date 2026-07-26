@@ -26,17 +26,31 @@ public class HealthSlots {
     }
 
     public void draw(int currentHealth) {
-        for (int i = 0; i < maxHealth; i++) {
-            int row = i / slotsPerRow;
-            int col = i % slotsPerRow;
+        int totalRows = (int) Math.ceil((double) maxHealth / slotsPerRow);
 
-            double cx = MARGIN_X + SLOT_SIZE / 2 + col * (SLOT_SIZE + SLOT_SPACING);
-            double cy = baseCenterY - row * (SLOT_SIZE + SLOT_SPACING);
+        for (int row = 0; row < totalRows; row++) {
+            int slotsInRow = Math.min(slotsPerRow, maxHealth - row * slotsPerRow);
+            double rowWidth = slotsInRow * SLOT_SIZE + (slotsInRow - 1) * SLOT_SPACING;
+            double startX = GameLib.WIDTH / 2.0 - rowWidth / 2.0 + SLOT_SIZE / 2.0;
 
-            GameLib.setColor(i < currentHealth ? FILLED_COLOR : EMPTY_COLOR);
-            GameLib.fillRect(cx, cy, SLOT_SIZE, SLOT_SIZE);
+            for (int col = 0; col < slotsInRow; col++) {
+                int i = row * slotsPerRow + col;
+                double cx = startX + col * (SLOT_SIZE + SLOT_SPACING);
+                double cy = baseCenterY - row * (SLOT_SIZE + SLOT_SPACING);
 
-            GameLib.setColor(BORDER_COLOR);
+                GameLib.setColor(i < currentHealth ? FILLED_COLOR : EMPTY_COLOR);
+                GameLib.fillRect(cx, cy, SLOT_SIZE, SLOT_SIZE);
+
+                GameLib.setColor(BORDER_COLOR);
+                double left = cx - SLOT_SIZE / 2;
+                double right = cx + SLOT_SIZE / 2;
+                double top = cy - SLOT_SIZE / 2;
+                double bottom = cy + SLOT_SIZE / 2;
+                GameLib.drawLine(left, top, right, top);
+                GameLib.drawLine(right, top, right, bottom);
+                GameLib.drawLine(right, bottom, left, bottom);
+                GameLib.drawLine(left, bottom, left, top);
+            }
         }
     }
 }

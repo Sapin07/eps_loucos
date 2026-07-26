@@ -82,8 +82,8 @@ public class Game {
                     break;
                 }
 
-                announceOutcome();
                 playAgain = showEndScreenAndWaitForChoice();
+                announceOutcome();
             }
         } catch (Exception e) {
             // last resort
@@ -92,6 +92,8 @@ public class Game {
             //  never-drawn screen with no visible clue why
             LOGGER.log(Level.SEVERE, "Fatal error, aborting game.", e);
         }
+
+        System.exit(0); // adicionei para sair quando clica ESC
     }
 
     private void startNewRound() {
