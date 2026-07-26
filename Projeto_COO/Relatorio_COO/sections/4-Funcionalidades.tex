@@ -1,4 +1,4 @@
-\section{Novas Funcionalidades}
+\section{Novas Funcionalidades e robustez da implementação}
 
 
 \subsection{Power-ups}
@@ -141,3 +141,83 @@ configuração, e a instância concreta correta é devolvida. O avanço de fase
 está diretamente ligado à derrota do chefe, isto é, assim que ele é desativado, a
 fase seguinte é carregada (ou o jogo é encerrado com uma mensagem de vitória,
 caso seja a última fase empolgante).
+
+\subsection{Robustez do código (exceções e logging)}
+
+\subsubsection{Exceções}
+
+A leitura dos arquivos de configuração é o ponto do projeto com maior
+exposição a erros em tempo de execução, arquivos podem não existir, ter
+campos faltando, valores fora do formato esperado, ou um caminho relativo
+incorreto dependendo de onde o jogo é executado. Por isso, o módulo de
+configuração (\texttt{game.config} e seus subpacotes) foi tratado com atenção
+especial, combinando exceções descritivas com o uso de
+\texttt{java.util.logging} para registrar o que aconteceu.
+
+Sempre que uma linha de um arquivo de configuração está malformada, o parser
+correspondente lança uma exceção com uma mensagem específica, indicando
+exatamente qual campo é o problema. Exemplo:
+
+\begin{lstlisting}[caption={Exceções descritivas (GameConfigParser.java)}]
+private int parseIntline(String line, String description){
+    if (line == null)
+        throw new IllegalStateException("Arquivo de configuração incompleto: faltando " + description + ".");
+
+    try {
+        return Integer.parseInt(line.trim());
+    } catch (NumberFormatException e) {
+        throw new IllegalStateException("Valor inválido para " + description + ": \"" + line + "\"", e);
+    }
+}
+\end{lstlisting}
+
+Essas exceções, no entanto, são tratadas de duas formas diferentes dependendo
+da sua gravidade, o que evita que um erro pontual derrube o jogo inteiro
+desnecessariamente. Uma entrada isolada malformada dentro de um arquivo de
+fase (um \texttt{INIMIGO}, \texttt{POWERUP} ou \texttt{CHEFE} com tipo
+desconhecido, por exemplo) é simplesmente ignorada, registrando um aviso e
+permitindo que o restante da fase continue normalmente, como mostra:
+
+\begin{lstlisting}[caption={Uma entrada inválida não derruba a fase inteira (Game.java)}]
+private void spawnDueEntities() {
+    List<EntitySpec> due = currentPhase.pollDueSpawns(phaseElapsedMs);
+
+    for (EntitySpec spec : due) {
+        try {
+            spawnEntity(spec);
+        } catch (IllegalArgumentException e) {
+            // a single malformed/unknown entry in the phase file shouldn't take
+            // the whole game down; skip it and keep playing.
+            LOGGER.log(Level.WARNING, "Skipping invalid spawn entry: " + spec, e);
+        }
+    }
+}
+\end{lstlisting}
+
+Já uma falha estrutural mais grave, como o próprio arquivo de configuração
+principal não sendo encontrado, é trata como fatal em um único ponto
+central, no laço principal do jogo, evitando que a aplicação trave com uma
+janela aberta e sem nenhuma explicação visível ao usuário.
+
+\begin{lstlisting}[caption={Falhas fatais são registradas e encerram o jogo (Game.java)}]
+try {
+    ...
+} catch (Exception e) {
+    // last resort: without this, a startup/runtime failure would crash the thread
+    // after initGraphics() already opened the window, leaving a frozen,
+    // never-drawn screen with no visible clue why
+    LOGGER.log(Level.SEVERE, "Fatal error, aborting game.", e);
+}
+\end{lstlisting}
+
+\subsubsection{Logging}
+
+O uso do \texttt{Logger} (de \texttt{java.util.logging}) permite diferenciar a
+gravidade de cada evento por nível, sendo \texttt{INFO} para o progresso normal do
+jogo (início de round, carregamento de fase, derrota de um chefe),
+\texttt{WARNING} para entradas inválidas ignoradas e \texttt{SEVERE} para
+falhas fatais com o rastro de pilha completo anexado. Em vez de misturar
+tudo em uma única saída de texto sem distinção de severidade. Eventos mais
+frequentes e de baixo interesse fora de depuração, como o surgimento de cada
+inimigo comum, são registrados em nível \texttt{FINE}, mantendo a saída
+padrão do jogo limpa durante uma execução normal.
