@@ -1,4 +1,5 @@
 10
-2
+3
 config/fase1.txt
 config/fase2.txt
+config/fase3.txt
