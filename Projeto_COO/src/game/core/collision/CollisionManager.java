@@ -66,7 +66,8 @@ public class CollisionManager {
         for(Enemy e : enemies){
             if (e.isActive() && e.hasCollidedWith(player)) {
                 player.takeDamage(e.getContactDamage());
-                e.takeDamage(e.getHealth()); // explodes the enemy
+                if(!(e instanceof Boss))
+                    e.takeDamage(e.getHealth()); // explodes the enemy
                 break;
             }
         }
