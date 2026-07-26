@@ -1,1 +1,27 @@
- 
+ACH2003 - Exercicio Programa - Shoot 'em up
+
+Integrantes:
+  - Vinicius Cunha - 16973242
+  - Gustavo Neves - 16986195
+
+Compilacao e execucao
+Requer JDK 25 e GNU Make.
+    make            # compila o projeto em /bin/
+    make run        # executa o jogo com a configuracao padrao (config/game.txt)
+    make clean      # remove os arquivos compilados
+
+Para rodar com um arquivo de configuracao diferente:
+
+    make run CONFIG=caminho/para/outro_game.txt
+
+Tambem e possivel executar diretamente, sem o Make:
+
+    javac -d bin $(find src -name "*.java")
+    java -cp bin game.Main <caminho/para/game.txt>
+
+O argumento de caminho e opcional; by default, usa-se config/game.txt.
+
+Como jogar
+    Setas (cima/baixo/esquerda/direita) - mover a nave
+    Ctrl                                - disparar
+    Esc                                 - sair do jogo

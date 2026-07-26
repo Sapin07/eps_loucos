@@ -13,7 +13,7 @@ build:
 	javac -d $(BIN_DIR) $(SOURCES)
 
 run: build
-	java -cp $(BIN_DIR) $(MAIN_CLASS)
+	java -cp $(BIN_DIR) $(MAIN_CLASS) $(CONFIG)
 
 clean:
 	rm -rf $(BIN_DIR)/*

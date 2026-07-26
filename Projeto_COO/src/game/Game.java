@@ -28,7 +28,7 @@ import lib.GameLib;
 
 public class Game {
     // todo:
-    // - should we use multi threads?
+    // - should we use multi threads? no time for it but check it after
 
     private static final Logger LOGGER = Logger.getLogger(Game.class.getName());
 
